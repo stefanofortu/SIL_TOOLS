@@ -1,0 +1,19 @@
+{
+    "root": {
+        "CSV_to_MDF": {
+            "input_file": {
+                "path": "C:\\Users\\stefano.fortunati\\Documents\\_TEMP\\",
+                "sheet_name": ""
+            },
+            "find_replace_file": {
+                "path": "",
+                "sheet_name": ""
+            },
+            "output_file": {
+                "path": ""
+            }
+        },
+        "CAN_highlighting": {},
+        "find_replace_multiple_row": {}
+    }
+}

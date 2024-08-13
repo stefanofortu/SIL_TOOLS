@@ -3,13 +3,15 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QFrame, QTabWidget, QToolBar, QStatusBar, QPlainTextEdit, \
     QVBoxLayout
 
-# from Classes.Configuration_Data import HIL_Function_Configuration_Data, TC_Highlight_Configuration_Data
+from Classes.Configuration_Data import Configuration_Data
+
 # from Classes.Configuration_File import Configuration_File
 # from Classes.HIL_Function_Widget import HIL_Function_Widget
 from Classes.QTextEditLogger import QTextEditLogger
 # from Classes.TC_Highlight_Widget import TC_Highlight_Widget
 # from Classes.TC_Substitution_Handler import TC_Substitution_Configuration_Data
-# from Classes.TC_Substitution_Widget import TC_Substitution_Widget
+
+from Classes.CSV_to_MDF_Widget import CSV_to_MDF_Widget
 from icons.resources import resource_path
 import logging
 
@@ -24,7 +26,7 @@ class MainWindow(QMainWindow):
         self.height = 240
         self.setGeometry(self.left, self.top, self.width, self.height)
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
-        #self.configuration_file = Configuration_File()
+        self.cfg_data = Configuration_Data()
 
         toolbar_action_new = QAction(QIcon(resource_path("new_configuration.png")), "New", self)
         toolbar_action_new.setStatusTip("Create new configuration")
@@ -74,10 +76,11 @@ class MainWindow(QMainWindow):
 
         # print(json_data)
 
+        csv_to_mdf_cfg_data, hil_function_file_data, tc_highlight_data = self.cfg_data.load_cfg_data_from_file()
 
         # self.hil_function_widget = HIL_Function_Widget(HIL_Function_Configuration_Data())
         # self.tc_highlight_widget = TC_Highlight_Widget(TC_Highlight_Configuration_Data())
-        #self.tc_substitution_widget = TC_Substitution_Widget(TC_Substitution_Configuration_Data())
+        self.csv_to_mdf_widget = CSV_to_MDF_Widget(csv_to_mdf_cfg_data)
 
         # definisci il widget delle tab
         tab_widget = QTabWidget()
@@ -85,9 +88,9 @@ class MainWindow(QMainWindow):
         tab_widget.setTabPosition(QTabWidget.North)
         tab_widget.setMovable(False)
 
+        tab_widget.insertTab(0, self.csv_to_mdf_widget, "CSV to MDF")
         # main_widget.insertTab(2, self.hil_function_widget, "HIL function")
         # main_widget.insertTab(1, self.tc_highlight_widget, "Test Case Highlight")
-        #tab_widget.insertTab(0, self.tc_substitution_widget, "Test Case Substitutions")
 
         logTextBox = QTextEditLogger(self)
         logging.getLogger().addHandler(logTextBox)
