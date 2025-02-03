@@ -3,3 +3,4 @@ installer/
 main.spec
 Classes/__pycache__/
 Classes/old/
+*.csv

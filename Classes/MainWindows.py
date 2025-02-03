@@ -11,7 +11,7 @@ from Classes.QTextEditLogger import QTextEditLogger
 # from Classes.TC_Highlight_Widget import TC_Highlight_Widget
 # from Classes.TC_Substitution_Handler import TC_Substitution_Configuration_Data
 
-from Classes.CSV_to_MDF_Widget import CSV_to_MDF_Widget
+from Classes.Main_Widget import Main_Widget
 from icons.resources import resource_path
 import logging
 
@@ -25,8 +25,10 @@ class MainWindow(QMainWindow):
         self.width = 320
         self.height = 240
         self.setGeometry(self.left, self.top, self.width, self.height)
+
+        self.csv_to_mdf_widget = Main_Widget()
+
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
-        self.cfg_data = Configuration_Data()
 
         toolbar_action_new = QAction(QIcon(resource_path("new_configuration.png")), "New", self)
         toolbar_action_new.setStatusTip("Create new configuration")
@@ -75,12 +77,6 @@ class MainWindow(QMainWindow):
         #     sys.exit()
 
         # print(json_data)
-
-        csv_to_mdf_cfg_data, hil_function_file_data, tc_highlight_data = self.cfg_data.load_cfg_data_from_file()
-
-        # self.hil_function_widget = HIL_Function_Widget(HIL_Function_Configuration_Data())
-        # self.tc_highlight_widget = TC_Highlight_Widget(TC_Highlight_Configuration_Data())
-        self.csv_to_mdf_widget = CSV_to_MDF_Widget(csv_to_mdf_cfg_data)
 
         # definisci il widget delle tab
         tab_widget = QTabWidget()

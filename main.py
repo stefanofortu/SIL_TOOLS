@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QApplication
 from Classes.MainWindows import MainWindow
 from Classes.QTextEditLogger import logging_setup
 
+
 if __name__ == '__main__':
     logging_setup()
 
