@@ -124,13 +124,13 @@ class CSV_to_MDF_Handler:
 
     def exec_cleanup(self):
 
-        wb_in = load_workbook(self.cfg_data.input_file_path)
+        wb_in = load_workbook(self.cfg_data.mdf_conversion_input_file_path)
         ws_in = wb_in[self.cfg_data.input_file_sheet]
 
         print("import input file : DONE")
-        wb_in.save(filename=self.cfg_data.output_file_path)
+        wb_in.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
-        wbOut = load_workbook(self.cfg_data.output_file_path)
+        wbOut = load_workbook(self.cfg_data.mdf_conversion_output_file_path)
         wsOut = wbOut[self.cfg_data.input_file_sheet]
 
         print("saved Copy of Input file: DONE")
@@ -148,19 +148,19 @@ class CSV_to_MDF_Handler:
 
         print("cancellazioni righe vuote : DONE")
 
-        wbOut.save(filename=self.cfg_data.output_file_path)
+        wbOut.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
         print("file output saving : DONE")
 
     def exec_bullet_lists_fix(self):
 
-        wb_in = load_workbook(self.cfg_data.input_file_path)
+        wb_in = load_workbook(self.cfg_data.mdf_conversion_input_file_path)
         ws_in = wb_in[self.cfg_data.input_file_sheet]
 
         print("import input file : DONE")
-        wb_in.save(filename=self.cfg_data.output_file_path)
+        wb_in.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
-        wbOut = load_workbook(self.cfg_data.output_file_path)
+        wbOut = load_workbook(self.cfg_data.mdf_conversion_output_file_path)
         wsOut = wbOut[self.cfg_data.input_file_sheet]
 
         print("saved Copy of Input file: DONE")
@@ -178,19 +178,19 @@ class CSV_to_MDF_Handler:
 
         print("sistemazione elenchi puntati : DONE")
 
-        wbOut.save(filename=self.cfg_data.output_file_path)
+        wbOut.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
         print("file output saving : DONE")
 
     def exec_polarion_to_excel_converter(self):
 
-        wb_in = load_workbook(self.cfg_data.input_file_path)
+        wb_in = load_workbook(self.cfg_data.mdf_conversion_input_file_path)
         ws_in = wb_in[self.cfg_data.input_file_sheet]
 
         print("import input file : DONE")
-        wb_in.save(filename=self.cfg_data.output_file_path)
+        wb_in.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
-        wbOut = load_workbook(self.cfg_data.output_file_path)
+        wbOut = load_workbook(self.cfg_data.mdf_conversion_output_file_path)
         wsOut = wbOut[self.cfg_data.input_file_sheet]
 
         print("saved Copy of Input file: DONE")
@@ -209,19 +209,19 @@ class CSV_to_MDF_Handler:
 
         print("polarion to excel conversion: DONE")
 
-        wbOut.save(filename=self.cfg_data.output_file_path)
+        wbOut.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
         print("file output saving : DONE")
 
     def exec_excel_to_polarion_converter(self):
 
-        wb_in = load_workbook(self.cfg_data.input_file_path)
+        wb_in = load_workbook(self.cfg_data.mdf_conversion_input_file_path)
         ws_in = wb_in[self.cfg_data.input_file_sheet]
 
         print("import input file : DONE")
-        wb_in.save(filename=self.cfg_data.output_file_path)
+        wb_in.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
-        wbOut = load_workbook(self.cfg_data.output_file_path)
+        wbOut = load_workbook(self.cfg_data.mdf_conversion_output_file_path)
         wsOut = wbOut[self.cfg_data.input_file_sheet]
 
         print("saved Copy of Input file: DONE")
@@ -240,7 +240,7 @@ class CSV_to_MDF_Handler:
 
         print("excel to polarion conversion: DONE")
 
-        wbOut.save(filename=self.cfg_data.output_file_path)
+        wbOut.save(filename=self.cfg_data.mdf_conversion_output_file_path)
 
         print("file output saving : DONE")
 
@@ -307,6 +307,7 @@ class CSV_to_MDF_Handler:
         ## STEP2 : creare asse dei tempi
         #############
         timestamps = np.array(df["relative_time"].apply(lambda x: x.seconds))
+
 
         #############
         ## STEP2 : creare i segnali effettivi dal dataframe

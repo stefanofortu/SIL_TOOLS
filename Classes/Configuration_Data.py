@@ -8,8 +8,11 @@ FILE_NAME_DEFAULT = "SIL_config_data.json"
 class Configuration_Data: #CHANGE NAME TO FILE
     def __init__(self):
         self.configuration_file_name = FILE_NAME_DEFAULT
-        self.input_file_path = ""
-        self.output_file_path = ""
+        print("sistema le variabili in questo file di configurazione")
+        self.mdf_conversion_input_file_path = ""
+        self.mdf_conversion_output_file_path = ""
+        self.mdf_elaboration_input_file_path = ""
+        self.mdf_elaboration_output_file_path = ""
         self.load_cfg_data_from_file()
 
     def load_cfg_data_from_file(self):
@@ -19,21 +22,26 @@ class Configuration_Data: #CHANGE NAME TO FILE
                 file_dict = json.loads(json_file_no_comment)
 
                 try:
-                    CSV_to_MDF_cfg_data_dict = file_dict['root']['CSV_to_MDF']
+                    cfg_data_dict = file_dict['root']['SIL_CFG_DATA']
                 except KeyError:
-                    print("Field 'CSV_to_MDF' in file " , self.configuration_file_name, "does not exist")
+                    print("Field 'SIL_CFG_DATA' in file " , self.configuration_file_name, "does not exist")
                     sys.exit()
 
-                if isinstance(CSV_to_MDF_cfg_data_dict, dict):
+                if isinstance(cfg_data_dict, dict):
                     try:
-                        input_file = CSV_to_MDF_cfg_data_dict['input_file']
-                        self.input_file_path = input_file['path']
+                        input_file = cfg_data_dict['mdf_conversion_input_file']
+                        self.mdf_conversion_input_file_path = input_file['path']
 
-                        output_file = CSV_to_MDF_cfg_data_dict['output_file']
-                        self.output_file_path = output_file['path']
-                        # print('filePath for output file :', output_file_path)
+                        output_file = cfg_data_dict['mdf_conversion_output_file']
+                        self.mdf_conversion_output_file_path = output_file['path']
+
+                        mdf_elaboration_input_file = cfg_data_dict['mdf_elaboration_input_file']
+                        self.mdf_elaboration_input_file_path = mdf_elaboration_input_file['path']
+
+                        mdf_elaboration_output_file = cfg_data_dict['mdf_elaboration_output_file']
+                        self.mdf_elaboration_output_file_path = mdf_elaboration_output_file['path']
                     except KeyError:
-                        print('Field in CSV_to_MDF_Configuration_Data wrongly formatted')
+                        print('Field in Conversion_to_MDF wrongly formatted')
                         sys.exit()
                 else:
                     print('create_data_from_json_dict(): error in input data')
@@ -48,17 +56,21 @@ class Configuration_Data: #CHANGE NAME TO FILE
     def save_cfg_data_to_file(self, filename_default=False, select_new_file=False):
         configuration_file_data = {
             "root": {
-                "CSV_to_MDF": {},
-                "CAN_highlighting": {},
-                "find_replace_multiple_row": {}
+                "SIL_CFG_DATA": {},
             }
         }
-        configuration_file_data['root']['CSV_to_MDF'] = dict({
-            "input_file": {
-                "path": self.input_file_path,
+        configuration_file_data['root']['SIL_CFG_DATA'] = dict({
+            "mdf_conversion_input_file": {
+                "path": self.mdf_conversion_input_file_path,
             },
-            "output_file": {
-                "path": self.output_file_path
+            "mdf_conversion_output_file": {
+                "path": self.mdf_conversion_output_file_path
+            },
+            "mdf_elaboration_input_file": {
+                "path": self.mdf_elaboration_input_file_path,
+            },
+            "mdf_elaboration_output_file": {
+                "path": self.mdf_elaboration_output_file_path
             }
         })
 
@@ -86,61 +98,3 @@ class Configuration_Data: #CHANGE NAME TO FILE
                     outfile.write(json_object)
             except IOError:
                 print("Error in writing files - self.configuration_file_name")
-
-# class CSV_to_MDF_Configuration_Data:
-#     def __init__(self, csv_to_mdf_dictionary=None):
-#         if csv_to_mdf_dictionary == None:
-#             pass
-#         else:
-#             self.create_data_from_json_dict(csv_to_mdf_dictionary)
-#
-#     def create_json_dict_from_data(self):
-#         csv_to_mdf_dict = {
-#             "input_file": {
-#                 "path": self.input_file_path,
-#             },
-#             "output_file": {
-#                 "path": self.output_file_path
-#             }
-#         }
-#
-#         return csv_to_mdf_dict
-
-# class Configuration_File(QWidget):
-#     def __init__(self):
-#         super().__init__()
-#
-#     def open(self):
-#         # options = QFileDialog.Options()
-#         # options |= QFileDialog.DontUseNativeDialog
-#         fileName, _ = QFileDialog.getOpenFileName(self, 'Select configuration file', "", 'JSON file (*.json)')
-#         if fileName:
-#             print(fileName)
-#         else:
-#             raise ValueError
-#
-#     def save(self, select_new_file=False):
-#
-#         self.configuration_file_data['root']['CSV_to_MDF'] = CSV_to_MDF_data
-#         # self.configuration_file_data['root']['CAN_highlighting'] = tc_highlight_data
-#         # self.configuration_file_data['root']['find_replace_multiple_row'] = tc_substitution_data
-#
-#         print(self.configuration_file_data)
-#
-#         # Serializing json
-#         json_object = json.dumps(self.configuration_file_data, indent=4)
-#
-#         if not select_new_file:
-#             fileName = self.configuration_file_name
-#         else:
-#             fileName, _ = QFileDialog.getSaveFileName(self, "Save configuration as ", "",
-#                                                       'JSON file (*.json)')  # , options=options)
-#         if self.configuration_file_name:
-#             # Writing to sample.json
-#             try:
-#                 with open(fileName, "w") as outfile:
-#                     outfile.write(json_object)
-#             except IOError:
-#                 print("Error in writing files")
-#
-#             self.configuration_file_name = fileName

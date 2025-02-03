@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QFrame, QTabWidget, QToolBar
     QVBoxLayout
 
 from Classes.Configuration_Data import Configuration_Data
+from Classes.Mdf_Elaboration_Widget import Mdf_Elaboration_Widget
 
 # from Classes.Configuration_File import Configuration_File
 # from Classes.HIL_Function_Widget import HIL_Function_Widget
@@ -26,7 +27,9 @@ class MainWindow(QMainWindow):
         self.height = 240
         self.setGeometry(self.left, self.top, self.width, self.height)
 
-        self.csv_to_mdf_widget = Main_Widget()
+        self.configuration_data = Configuration_Data()
+        self.csv_to_mdf_widget = Main_Widget(self.configuration_data)
+        self.mdf_elaboration_widget = Mdf_Elaboration_Widget(self.configuration_data)
 
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
@@ -84,9 +87,10 @@ class MainWindow(QMainWindow):
         tab_widget.setTabPosition(QTabWidget.North)
         tab_widget.setMovable(False)
 
-        tab_widget.insertTab(0, self.csv_to_mdf_widget, "CSV to MDF")
+        tab_widget.insertTab(0, self.csv_to_mdf_widget, "MDF Conversions")
+        tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
+
         # main_widget.insertTab(2, self.hil_function_widget, "HIL function")
-        # main_widget.insertTab(1, self.tc_highlight_widget, "Test Case Highlight")
 
         logTextBox = QTextEditLogger(self)
         logging.getLogger().addHandler(logTextBox)

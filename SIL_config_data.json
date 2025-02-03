@@ -1,14 +1,18 @@
 {
     "root": {
-        "CSV_to_MDF": {
-            "input_file": {
-                "path": "//svrnas001.saleri.it/TestingRoom-Data/dati_report/2025/_in_attesa_di_codice_report/_MTU/report_1734334023098/report_1734334023098/log.600.data"
+        "SIL_CFG_DATA": {
+            "mdf_conversion_input_file": {
+                "path": "//svrnas001.saleri.it/TestingRoom-Data/dati_report/2025/2025_01_01_0028/logger/2025_02_03/curva 2000 rpm2.mf4"
             },
-            "output_file": {
-                "path": "C:/Users/stefano.fortunati/Documents/_TOOLS/Python/Pycharm_Projects/SIL_TOOLS/aa.mdf"
+            "mdf_conversion_output_file": {
+                "path": "//svrnas001.saleri.it/TestingRoom-Data/dati_report/2025/2025_01_01_0028/logger/2025_02_03/curva2000rpm_READ.mf4"
+            },
+            "mdf_elaboration_input_file": {
+                "path": "//svrnas001.saleri.it/TestingRoom-Data/dati_report/2025/2025_01_01_0028/logger/2025_02_03/curva 2000 rpm2.mf4"
+            },
+            "mdf_elaboration_output_file": {
+                "path": "//svrnas001.saleri.it/TestingRoom-Data/dati_report/2025/2025_01_01_0028/logger/2025_02_03/curva 2000 rpm2_READ.mf4"
             }
-        },
-        "CAN_highlighting": {},
-        "find_replace_multiple_row": {}
+        }
     }
 }

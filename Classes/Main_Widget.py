@@ -6,6 +6,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QM
     QLineEdit, QFileDialog, QComboBox, QRadioButton, QButtonGroup
 from Classes.CSV_to_MDF_Handler import CSV_to_MDF_Handler
 from Classes.Bertrandt_to_MDF import Bertrandt_to_MDF_Handler
+from Classes.DielectriK_to_MDF import DielectriK_to_MDF
 from Classes.PumpLogger_to_MDF import PumpLogger_to_MDF
 from Classes.Configuration_Data import Configuration_Data
 from icons.resources import resource_path
@@ -15,14 +16,12 @@ from pytcs import ScopeFile
 
 class Main_Widget(QWidget):
 
-    def index_changed(self, index):
-        self.selected_option_label.setText(f"Option Selected: {index}")
-
-    def text_changed(self, text):
-        self.selected_option_label.setText(f"Option Selected: {text}")
-
-    def __init__(self):
+    def __init__(self, cfg_data):
         super().__init__()
+
+        if not isinstance(cfg_data,Configuration_Data):
+            print("cfg_data not Configuration_Data");
+            exit()
 
         widget_main_layout = QVBoxLayout()
         ############### TITLE LABEL ###############
@@ -33,6 +32,23 @@ class Main_Widget(QWidget):
         title_label.setStyleSheet('background-color: rgb(255,140,0)')
 
         widget_main_layout.addWidget(title_label)
+
+        ############### SELECTION BOX FILE  ###############
+        # Create a Vertical Layout
+        comboBox_VLayout = QVBoxLayout()
+
+        # Introduction label
+        self.selection_label = QLabel("Select an option:")
+
+        # Create a ComboBox
+        self.selection_comboBox = QComboBox()
+        self.selection_comboBox.addItems(["EDAG", "Bertrandt", "PumpLogger", "Dielectrik"])
+
+        # Layout and main widget
+        comboBox_VLayout.addWidget(self.selection_label)
+        comboBox_VLayout.addWidget(self.selection_comboBox)
+        widget_main_layout.addLayout(comboBox_VLayout)
+
         ############### INPUT FILE [.TXT] ###############
         input_file_layout = QGridLayout()
         #
@@ -95,27 +111,6 @@ class Main_Widget(QWidget):
         ##
         widget_main_layout.addLayout(output_file_layout)
 
-        ############### SELECTION BOX FILE  ###############
-        # Create a Vertical Layout
-        comboBox_VLayout = QVBoxLayout()
-
-        # Create a ComboBox
-        self.selection_comboBox = QComboBox()
-        self.selection_comboBox.addItems(["EDAG", "Bertrandt", "PumpLogger", "Altro"])
-        self.selection_comboBox.currentIndexChanged.connect(self.index_changed)
-        self.selection_comboBox.currentTextChanged.connect(self.text_changed)
-
-        # Introduction label
-        self.selection_label = QLabel("Select an option:")
-
-        # Label to display the selection
-        self.selected_option_label = QLabel("Option selected:")
-
-        # Layout and main widget
-        comboBox_VLayout.addWidget(self.selection_label)
-        comboBox_VLayout.addWidget(self.selection_comboBox)
-        comboBox_VLayout.addWidget(self.selected_option_label)
-
         ############### START SUBSTITUTION ###############
         exec_row_layout = QHBoxLayout()
         # exec_row_layout.addStretch()
@@ -125,8 +120,6 @@ class Main_Widget(QWidget):
         exec_row_layout.addWidget(btn_exec_tc_substitution)
 
         exec_row_layout.addStretch()
-
-        widget_main_layout.addLayout(comboBox_VLayout)
         widget_main_layout.addLayout(exec_row_layout)
 
         ############### SET MAIN LAYOUT
@@ -134,15 +127,17 @@ class Main_Widget(QWidget):
         ############### GUI END
 
         ############### LOAD DATA ######################
-        self.cfg_data = Configuration_Data()
+        self.cfg_data = cfg_data
         self.cfg_data.load_cfg_data_from_file()
 
-        self.input_file_path_label.setText(self.cfg_data.input_file_path)
-        self.output_file_path_label.setText(self.cfg_data.output_file_path)
+        self.input_file_path_label.setText(self.cfg_data.mdf_conversion_input_file_path)
+        self.output_file_path_label.setText(self.cfg_data.mdf_conversion_output_file_path)
 
         self.csv_to_mdf_handler = CSV_to_MDF_Handler()
         self.bertrandt_to_mdf_handler = Bertrandt_to_MDF_Handler()
         self.pumplogger_to_mdf = PumpLogger_to_MDF()
+        self.dielectrik_to_mdf = DielectriK_to_MDF()
+
 
         # self.update_cfg_data_gui()
 
@@ -158,17 +153,21 @@ class Main_Widget(QWidget):
             exit()
 
         if self.selection_comboBox.currentText() == "EDAG":
-            self.csv_to_mdf_handler.exec_substitution(self.cfg_data.input_file_path,
+            self.csv_to_mdf_handler.exec_substitution(self.cfg_data.mdf_conversion_input_file_path,
                                                       use_same_name,
-                                                      self.cfg_data.output_file_path)
+                                                      self.cfg_data.mdf_conversion_output_file_path)
         elif self.selection_comboBox.currentText() == "Bertrandt":
-            self.bertrandt_to_mdf_handler.exec_conversion(self.cfg_data.input_file_path,
+            self.bertrandt_to_mdf_handler.exec_conversion(self.cfg_data.mdf_conversion_input_file_path,
                                                           use_same_name,
-                                                          self.cfg_data.output_file_path)
+                                                          self.cfg_data.mdf_conversion_output_file_path)
         elif self.selection_comboBox.currentText() == "PumpLogger":
-            self.pumplogger_to_mdf.exec_conversion(self.cfg_data.input_file_path,
+            self.pumplogger_to_mdf.exec_conversion(self.cfg_data.mdf_conversion_input_file_path,
                                                    use_same_name,
-                                                   self.cfg_data.output_file_path)
+                                                   self.cfg_data.mdf_conversion_output_file_path)
+        elif self.selection_comboBox.currentText() == "Dielectrik":
+            self.dielectrik_to_mdf.exec_conversion(self.cfg_data.mdf_conversion_input_file_path,
+                                                   use_same_name,
+                                                   self.cfg_data.mdf_conversion_output_file_path)
         else:
             print("Wrong selection in selection_comboBox")
 
@@ -177,17 +176,28 @@ class Main_Widget(QWidget):
         # file_dialog.setDirectory(os.path.dirname(self.cfg_data.input_file_path))
         possible_filters = ["Text Files (*.txt)", "CSV Files (*.csv)", "Python Files (*.py)",
                             "PumpLogger_data (*.data)", "All Files (*)"]
-        selected_filter = possible_filters[1]
+
+        if self.selection_comboBox.currentText() == "EDAG":
+            selected_filter = possible_filters[0] #.csv
+        elif self.selection_comboBox.currentText() == "Bertrandt":
+            selected_filter = possible_filters[1]
+        elif self.selection_comboBox.currentText() == "PumpLogger":
+            selected_filter = possible_filters[3] #.csv
+        elif self.selection_comboBox.currentText() == "Dielectrik":
+            selected_filter = possible_filters[0] #.txt
+        else:
+            print("Wrong selection in selection_comboBox")
 
         fileName, _ = file_dialog.getOpenFileName(self, caption="Select input CSV file",
-                                                  dir=os.path.dirname(self.cfg_data.input_file_path),
+                                                  dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_path),
                                                   filter=";;".join(possible_filters),
-                                                  selectedFilter= selected_filter)
+                                                  selectedFilter=selected_filter)
         #                                          "EDAG log file (*.txt)",
-        #                                          "EDAG log file (*.txt);;Bertandt log file (*.svd);;All Files (*);;",)  # , options=options)
+        #                                          "EDAG log file (*.txt);;Bertandt log file (*.svd);;All Files (*);;",)
+        # , options=options)
         if fileName:
-            self.cfg_data.input_file_path = fileName
-            self.input_file_path_label.setText(self.cfg_data.input_file_path)
+            self.cfg_data.mdf_conversion_input_file_path = fileName
+            self.input_file_path_label.setText(self.cfg_data.mdf_conversion_input_file_path)
             self.cfg_data.save_cfg_data_to_file()
 
     def saveFileDialog(self):
@@ -195,6 +205,6 @@ class Main_Widget(QWidget):
                                                   "MDF file (*.mf4)")  # , options=options)
         if fileName:
             # print(fileName)
-            self.cfg_data.output_file_path = fileName
-            self.output_file_path_label.setText(self.cfg_data.output_file_path)
+            self.cfg_data.mdf_conversion_output_file_path = fileName
+            self.output_file_path_label.setText(self.cfg_data.mdf_conversion_output_file_path)
             self.cfg_data.save_cfg_data_to_file()
