@@ -2,20 +2,66 @@ import os.path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QLabel, QFrame, QGridLayout, \
-    QLineEdit, QFileDialog, QComboBox, QRadioButton, QButtonGroup, QCheckBox, QSpinBox
-from Classes.CSV_to_MDF_Handler import CSV_to_MDF_Handler
-from Classes.Bertrandt_to_MDF import Bertrandt_to_MDF_Handler
-from Classes.DielectriK_to_MDF import DielectriK_to_MDF
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QGridLayout, \
+    QFileDialog, QCheckBox, QSpinBox, QLineEdit
 from Classes.Mdf_Elaboration_Handler import Mdf_Elaboration_Handler
-from Classes.PumpLogger_to_MDF import PumpLogger_to_MDF
 from Classes.Configuration_Data import Configuration_Data
 from icons.resources import resource_path
 
-from pytcs import ScopeFile
-
 
 class Mdf_Elaboration_Widget(QWidget):
+
+    def tc_substitution_exec_elaboration(self):
+        df, start_time = self.mdf_elaboration.load_from_mdf(self.cfg_data.mdf_elaboration_input_file_path)
+
+        if self.adding_read_checkbox.isChecked():
+            self.mdf_elaboration.insert_read(df,
+                                             read_start_time=self.read_delay_spin_box.value(),
+                                             read_waiting_time=self.read_waiting_time_spin_box.value(),
+                                             read_high_time=self.read_high_time_spin_box.value(),
+                                             read_numbers=self.read_repetitions_spin_box.value())
+
+        if self.adding_read_threshold_checkbox.isChecked():
+            self.mdf_elaboration.insert_read_by_threshold(df,
+                                                          signal_name=self.read_by_threshold_signal_name.text(),
+                                                          threshold=self.read_by_threshold_value_label_spin_box.value())
+
+        self.mdf_elaboration.save_to_mdf(df, self.cfg_data.mdf_elaboration_output_file_path)
+
+    def openInputFileDialog(self):
+        file_dialog = QFileDialog()
+
+        possible_filters = ["MDF Files (*.mf4)", "All Files (*)"]
+        selected_filter = possible_filters[0]  # .m4f
+
+        filename, _ = file_dialog.getOpenFileName(self, caption="Select input MDF file",
+                                                  dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_path),
+                                                  filter=";;".join(possible_filters),
+                                                  selectedFilter=selected_filter)
+
+        if filename:
+            self.cfg_data.mdf_elaboration_input_file_path = filename
+            self.input_file_path_label.setText(self.cfg_data.mdf_elaboration_input_file_path)
+            self.cfg_data.save_cfg_data_to_file()
+
+    def saveFileDialog(self):
+        fileName, _ = QFileDialog.getSaveFileName(self, "Select output file", "",
+                                                  "MDF file (*.mf4)")  # , options=options)
+        if fileName:
+            # print(fileName)
+            self.output_file_path_label.setText(self.cfg_data.mdf_elaboration_output_file_path)
+            self.save_ui_to_cfg_data()
+
+    def save_ui_to_cfg_data(self):
+        self.cfg_data.mdf_elaboration_input_file_path = self.input_file_path_label.text()
+        self.cfg_data.mdf_elaboration_output_file_path = self.output_file_path_label.text()
+        self.cfg_data.mdf_elaboration_insert_read_by_value_delay = 2
+        self.cfg_data.mdf_elaboration_insert_read_by_value_waiting = 15
+        self.cfg_data.mdf_elaboration_insert_read_by_value_time = 15
+        self.cfg_data.mdf_elaboration_insert_read_by_value_repetitions = 15
+        self.cfg_data.mdf_elaboration_insert_read_by_threshold_signal_name = "hello"
+        self.cfg_data.mdf_elaboration_insert_read_by_threshold_value = 1
+        self.cfg_data.save_cfg_data_to_file()
 
     def __init__(self, cfg_data):
         super().__init__()
@@ -56,11 +102,11 @@ class Mdf_Elaboration_Widget(QWidget):
         ##
         widget_main_layout.addLayout(input_file_layout)
         widget_main_layout.addStretch()
-        ######### INSERT READ #############################
-        insert_read_layout = QHBoxLayout()
+        ######### INSERT READ BY VALUE #############################
+        insert_read_by_value_layout = QHBoxLayout()
 
         # Create a checkbox
-        self.adding_read_checkbox = QCheckBox("Insert read", self)
+        self.adding_read_checkbox = QCheckBox("Insert read by value", self)
         # self.checkbox.stateChanged.connect(self.on_checkbox_changed)
 
         # Create a label to display checkbox state
@@ -68,6 +114,7 @@ class Mdf_Elaboration_Widget(QWidget):
         self.read_delay_spin_box = QSpinBox(self)
         self.read_delay_spin_box.setRange(0, 1000)  # Set the range of values (min, max)
         self.read_delay_spin_box.setValue(0)
+        #self.read_delay_spin_box.valueChanged.connect()
 
         self.read_waiting_time_label = QLabel("Waiting Time [s]", self)
         self.read_waiting_time_spin_box = QSpinBox(self)
@@ -85,18 +132,45 @@ class Mdf_Elaboration_Widget(QWidget):
         self.read_repetitions_spin_box.setValue(10)
 
         # Add widgets to layout
-        insert_read_layout.addWidget(self.adding_read_checkbox)
+        insert_read_by_value_layout.addWidget(self.adding_read_checkbox)
 
-        insert_read_layout.addWidget(self.read_delay_label)
-        insert_read_layout.addWidget(self.read_delay_spin_box)
-        insert_read_layout.addWidget(self.read_waiting_time_label)
-        insert_read_layout.addWidget(self.read_waiting_time_spin_box)
-        insert_read_layout.addWidget(self.read_high_time_label)
-        insert_read_layout.addWidget(self.read_high_time_spin_box)
-        insert_read_layout.addWidget(self.read_repetitions_label)
-        insert_read_layout.addWidget(self.read_repetitions_spin_box)
+        insert_read_by_value_layout.addWidget(self.read_delay_label)
+        insert_read_by_value_layout.addWidget(self.read_delay_spin_box)
+        insert_read_by_value_layout.addWidget(self.read_waiting_time_label)
+        insert_read_by_value_layout.addWidget(self.read_waiting_time_spin_box)
+        insert_read_by_value_layout.addWidget(self.read_high_time_label)
+        insert_read_by_value_layout.addWidget(self.read_high_time_spin_box)
+        insert_read_by_value_layout.addWidget(self.read_repetitions_label)
+        insert_read_by_value_layout.addWidget(self.read_repetitions_spin_box)
 
-        widget_main_layout.addLayout(insert_read_layout)
+        widget_main_layout.addLayout(insert_read_by_value_layout)
+        widget_main_layout.addStretch()
+
+        ######### INSERT READ BY THRESHOLD #############################
+        insert_read_by_threshold_layout = QHBoxLayout()
+
+        # Create a checkbox
+        self.adding_read_threshold_checkbox = QCheckBox("Insert read by threshold", self)
+        # self.checkbox.stateChanged.connect(self.on_checkbox_changed)
+
+        # Create a label to display checkbox state
+        self.read_by_threshold_label = QLabel("Name of the reference signal", self)
+        self.read_by_threshold_signal_name = QLineEdit()
+        self.read_by_threshold_signal_name.setText("Time[s]")  # Set the range of values (min, max)
+
+        self.read_by_threshold_value_label = QLabel("Threshold value", self)
+        self.read_by_threshold_value_label_spin_box = QSpinBox(self)
+        self.read_by_threshold_value_label_spin_box.setRange(0, 10000)  # Set the range of values (min, max)
+        self.read_by_threshold_value_label_spin_box.setValue(5)
+
+        # Add widgets to layout
+        insert_read_by_threshold_layout.addWidget(self.adding_read_threshold_checkbox)
+        insert_read_by_threshold_layout.addWidget(self.read_by_threshold_label)
+        insert_read_by_threshold_layout.addWidget(self.read_by_threshold_signal_name)
+        insert_read_by_threshold_layout.addWidget(self.read_by_threshold_value_label)
+        insert_read_by_threshold_layout.addWidget(self.read_by_threshold_value_label_spin_box)
+
+        widget_main_layout.addLayout(insert_read_by_threshold_layout)
         widget_main_layout.addStretch()
 
         ############### OUTPUT FILE  ###############
@@ -146,44 +220,3 @@ class Mdf_Elaboration_Widget(QWidget):
         self.output_file_path_label.setText(self.cfg_data.mdf_elaboration_output_file_path)
 
         self.mdf_elaboration = Mdf_Elaboration_Handler()
-
-    def tc_substitution_exec_elaboration(self):
-        df = self.mdf_elaboration.load_from_mdf(self.cfg_data.mdf_elaboration_input_file_path)
-        print(df.shape)
-        print(df.columns)
-        print(df.head())
-        # df = self.mdf_elaboration.load_from_mdf()
-
-        print("df.columns", df.columns)
-
-        self.mdf_elaboration.insert_read(df,
-                                         read_start_time=self.read_delay_spin_box.value(),
-                                         read_waiting_time=self.read_waiting_time_spin_box.value(),
-                                         read_high_time=self.read_high_time_spin_box.value(),
-                                         read_numbers=self.read_repetitions_spin_box.value())
-        self.mdf_elaboration.save_to_mdf(df, self.cfg_data.mdf_elaboration_output_file_path)
-
-    def openInputFileDialog(self):
-        file_dialog = QFileDialog()
-
-        possible_filters = ["MDF Files (*.mf4)", "All Files (*)"]
-        selected_filter = possible_filters[0]  # .m4f
-
-        fileName, _ = file_dialog.getOpenFileName(self, caption="Select input MDF file",
-                                                  dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_path),
-                                                  filter=";;".join(possible_filters),
-                                                  selectedFilter=selected_filter)
-
-        if fileName:
-            self.cfg_data.mdf_elaboration_input_file_path = fileName
-            self.input_file_path_label.setText(self.cfg_data.mdf_elaboration_input_file_path)
-            self.cfg_data.save_cfg_data_to_file()
-
-    def saveFileDialog(self):
-        fileName, _ = QFileDialog.getSaveFileName(self, "Select output file", "",
-                                                  "MDF file (*.mf4)")  # , options=options)
-        if fileName:
-            # print(fileName)
-            self.cfg_data.mdf_elaboration_output_file_path = fileName
-            self.output_file_path_label.setText(self.cfg_data.mdf_elaboration_output_file_path)
-            self.cfg_data.save_cfg_data_to_file()

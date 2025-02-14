@@ -24,12 +24,6 @@ class CSV_to_MDF_Handler:
                     if workCell[row_num + find_array_index] == find_array[find_array_index]:
                         match_counter += 1
                 if match_counter == len(find_array):
-                    # print("====")
-                    # print(workCell[row_num-1])
-                    # print(workCell[row_num])
-                    # print(workCell[row_num+1])
-                    # print("====")
-                    # print(len(find_array))
                     for replace_array_index in range(0, len(replace_array)):
                         outCell.append(replace_array[replace_array_index])
                     row_num += len(find_array)

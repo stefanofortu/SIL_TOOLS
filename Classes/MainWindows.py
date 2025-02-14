@@ -1,16 +1,11 @@
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QAction
-from PySide6.QtWidgets import QMainWindow, QWidget, QFrame, QTabWidget, QToolBar, QStatusBar, QPlainTextEdit, \
-    QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatusBar, QVBoxLayout
 
 from Classes.Configuration_Data import Configuration_Data
 from Classes.Mdf_Elaboration_Widget import Mdf_Elaboration_Widget
 
-# from Classes.Configuration_File import Configuration_File
-# from Classes.HIL_Function_Widget import HIL_Function_Widget
 from Classes.QTextEditLogger import QTextEditLogger
-# from Classes.TC_Highlight_Widget import TC_Highlight_Widget
-# from Classes.TC_Substitution_Handler import TC_Substitution_Configuration_Data
 
 from Classes.Main_Widget import Main_Widget
 from icons.resources import resource_path
@@ -67,19 +62,6 @@ class MainWindow(QMainWindow):
         file_menu.addAction(toolbar_action_save_as)
 
         self.setStatusBar(QStatusBar(self))
-
-        ######################
-        # try:
-        #     with open('pathFile.json', 'r') as json_file:
-        #         json_file_no_comment = ''.join(line for line in json_file if not line.startswith('#'))
-        #         data_dict = json.loads(json_file_no_comment)
-        #
-        #
-        # except FileNotFoundError:
-        #     print('File pathFile.json does not exist')
-        #     sys.exit()
-
-        # print(json_data)
 
         # definisci il widget delle tab
         tab_widget = QTabWidget()
