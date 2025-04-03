@@ -12,6 +12,7 @@ from Classes.Dataframe_to_MDF import Dataframe_to_MDF
 from Classes.DielectriK_to_MDF import DielectriK_to_MDF
 from Classes.PumpLogger_to_MDF import PumpLogger_to_MDF
 from Classes.Configuration_Data import Configuration_Data
+from Classes.Vector_to_MDF import Vector_to_MDF
 from icons.resources import resource_path
 
 
@@ -43,7 +44,7 @@ class Main_Widget(QWidget):
 
         # Create a ComboBox
         self.selection_comboBox = QComboBox()
-        self.selection_comboBox.addItems(["EDAG", "Bertrandt", "PumpLogger", "Dielectrik"])
+        self.selection_comboBox.addItems(["EDAG", "Bertrandt", "PumpLogger", "Dielectrik","Vector"])
 
         # Layout and main widget
         comboBox_VLayout.addWidget(self.selection_label)
@@ -174,23 +175,24 @@ class Main_Widget(QWidget):
         self.cfg_data.load_cfg_data_from_file()
 
         self.input_file_path_label.setText(self.cfg_data.mdf_conversion_input_file_path)
-        #self.output_file_path_label.setText(self.cfg_data.mdf_conversion_output_file_path)
+        # self.output_file_path_label.setText(self.cfg_data.mdf_conversion_output_file_path)
         self.input_mdf_file_path_label.setText(self.cfg_data.mdf_export_input_file_path)
 
         self.csv_to_mdf_handler = CSV_to_MDF_Handler()
         self.bertrandt_to_mdf_handler = Bertrandt_to_MDF_Handler()
         self.pumplogger_to_mdf = PumpLogger_to_MDF()
         self.dielectrik_to_mdf = DielectriK_to_MDF()
+        self.vector_to_mdf = Vector_to_MDF()
 
     def btn_exec_export_to_csv(self):
         df, start_time = Dataframe_to_MDF.load_from_mdf(self.cfg_data.mdf_export_input_file_path)
         # Create a new column by adding the relative seconds as a timedelta to the base time
         df.insert(0, "Time", start_time + to_timedelta(df['Time[s]'], unit='s'))
         print(df.columns)
-        df.drop(columns=["Press_In(bar)", "Press_Out.(bar)", "LV_Ipump (A)", "EV_glicole(%)",
+        df.drop(columns=["Press_In(bar)", "Press_Out.(bar)", "LV_Ipump(A)", "EV_glicole(%)",
                          "Press_In(bar) .1", "Press_Out(bar)"], inplace=True)
         df.rename(columns={"Delta P(bar)": "DeltaP", "Flow(l/min)": "Q",
-                           "LV_Vpump (V)": "Tcoolant", "HV_Vpump(V)": "Vpump", "HV_Ipump(A)": "Ipump"}, inplace=True)
+                           "LV_Vpump(V)": "Tcoolant", "HV_Vpump(V)": "Vpump", "HV_Ipump(A)": "Ipump"}, inplace=True)
         df['Time'] = (df['Time'].dt.strftime('%d/%m/%Y %H:%M:%S.%f'))
         output_file_name = ""
         parts = self.cfg_data.mdf_export_input_file_path.split(".")
@@ -231,6 +233,10 @@ class Main_Widget(QWidget):
             self.dielectrik_to_mdf.exec_conversion(self.cfg_data.mdf_conversion_input_file_path,
                                                    use_same_name,
                                                    self.cfg_data.mdf_conversion_output_file_path)
+        elif self.selection_comboBox.currentText() == "Vector":
+            self.vector_to_mdf.exec_conversion(input_file_path=self.cfg_data.mdf_conversion_input_file_path,
+                                                   use_same_input_file_name=True,
+                                                   output_file_name=self.cfg_data.mdf_conversion_output_file_path)
         else:
             print("Wrong selection in selection_comboBox")
 
@@ -238,16 +244,18 @@ class Main_Widget(QWidget):
         file_dialog = QFileDialog()
         # file_dialog.setDirectory(os.path.dirname(self.cfg_data.input_file_path))
         possible_filters = ["Text Files (*.txt)", "CSV Files (*.csv)", "Python Files (*.py)",
-                            "PumpLogger_data (*.data)", "All Files (*)"]
+                            "PumpLogger_data (*.data)", "MDF file (*.mf4)", "All Files (*)"]
 
         if self.selection_comboBox.currentText() == "EDAG":
-            selected_filter = possible_filters[0]  # .csv
+            selected_filter = possible_filters[0]  # .txt
         elif self.selection_comboBox.currentText() == "Bertrandt":
-            selected_filter = possible_filters[1]
+            selected_filter = possible_filters[1]  # .csv
         elif self.selection_comboBox.currentText() == "PumpLogger":
-            selected_filter = possible_filters[3]  # .csv
+            selected_filter = possible_filters[3]  # .data
         elif self.selection_comboBox.currentText() == "Dielectrik":
             selected_filter = possible_filters[0]  # .txt
+        elif self.selection_comboBox.currentText() == "Vector":
+            selected_filter = possible_filters[4]  # .mf4
         else:
             print("Wrong selection in selection_comboBox")
 

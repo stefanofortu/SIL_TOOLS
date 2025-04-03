@@ -38,7 +38,9 @@ Rem aggiungere "--noconsole" per evitare che si apra il cmd all'avvio
 
 IF %build_file% == true (
     ECHO Building executable file:
-    pyinstaller --specpath installer/build  --add-data "../../icons/*;." --icon "C:/Users/stefano.fortunati/PythonProjects/SIL_TOOLS/icons/test_new.ico" --onefile --distpath installer --clean --workpath installer/build --name %file_name% main.py
+Rem pyinstaller --specpath installer/build  --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --onefile --distpath installer --clean --workpath installer/build --name %file_name% main.py
+Rem pyinstaller main2.py --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --clean
+    pyinstaller main2.py --add-data "icons/*;." --icon "icons/test_new.ico" --clean
 )
 
 IF %copy_file% == true (

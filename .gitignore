@@ -4,3 +4,6 @@ main.spec
 Classes/__pycache__/
 Classes/old/
 *.csv
+build/
+dist/
+SIL_config_data.json

@@ -1,13 +1,13 @@
 import logging
 import sys
 from PySide6.QtWidgets import QApplication
-
+import PySide6
 from Classes.MainWindows import MainWindow
 from Classes.QTextEditLogger import logging_setup
 
 
 if __name__ == '__main__':
-    logging_setup()
+    #logging_setup()
 
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         logging.debug('PyInstaller bundle running')
@@ -15,7 +15,7 @@ if __name__ == '__main__':
         print(sys._MEIPASS)
     else:
         logging.debug('running in a normal Python process')
-
+    print(PySide6.__version__)
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

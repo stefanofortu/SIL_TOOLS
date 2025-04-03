@@ -48,7 +48,8 @@ class Mdf_Elaboration_Widget(QWidget):
         fileName, _ = QFileDialog.getSaveFileName(self, "Select output file", "",
                                                   "MDF file (*.mf4)")  # , options=options)
         if fileName:
-            # print(fileName)
+            print(fileName)
+            self.cfg_data.mdf_elaboration_output_file_path = fileName
             self.output_file_path_label.setText(self.cfg_data.mdf_elaboration_output_file_path)
             self.save_ui_to_cfg_data()
 

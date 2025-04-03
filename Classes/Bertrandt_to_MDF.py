@@ -1,5 +1,4 @@
 import logging
-from openpyxl import load_workbook
 
 from asammdf import MDF, Signal
 import numpy as np
