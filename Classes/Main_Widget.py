@@ -2,18 +2,20 @@ import os.path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QMessageBox, QLabel, QFrame, QGridLayout, \
-    QLineEdit, QFileDialog, QComboBox, QRadioButton, QButtonGroup
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QGridLayout, \
+    QFileDialog, QComboBox
 from pandas import to_timedelta
 
-from Classes.CSV_to_MDF_Handler import CSV_to_MDF_Handler
+from Conversions.CSV_to_MDF_Handler import CSV_to_MDF_Handler
 from Classes.Bertrandt_to_MDF import Bertrandt_to_MDF_Handler
 from Classes.Dataframe_to_MDF import Dataframe_to_MDF
 from Classes.DielectriK_to_MDF import DielectriK_to_MDF
 from Classes.PumpLogger_to_MDF import PumpLogger_to_MDF
 from Classes.Configuration_Data import Configuration_Data
-from Classes.Vector_to_MDF import Vector_to_MDF
+from Conversions.Vector_to_MDF import Vector_to_MDF
 from icons.resources import resource_path
+
+from Classes.GUI_Configuration import GUI_mdf_converstion_selection, gui_mdf_conversion_start_conversion_function
 
 
 class Main_Widget(QWidget):
@@ -44,7 +46,7 @@ class Main_Widget(QWidget):
 
         # Create a ComboBox
         self.selection_comboBox = QComboBox()
-        self.selection_comboBox.addItems(["EDAG", "Bertrandt", "PumpLogger", "Dielectrik","Vector"])
+        self.selection_comboBox.addItems(GUI_mdf_converstion_selection)
 
         # Layout and main widget
         comboBox_VLayout.addWidget(self.selection_label)
@@ -219,6 +221,7 @@ class Main_Widget(QWidget):
 
         if self.selection_comboBox.currentText() == "EDAG":
             self.csv_to_mdf_handler.exec_substitution(self.cfg_data.mdf_conversion_input_file_path,
+                                                        self.filename_list,
                                                       use_same_name,
                                                       self.cfg_data.mdf_conversion_output_file_path)
         elif self.selection_comboBox.currentText() == "Bertrandt":
@@ -235,10 +238,17 @@ class Main_Widget(QWidget):
                                                    self.cfg_data.mdf_conversion_output_file_path)
         elif self.selection_comboBox.currentText() == "Vector":
             self.vector_to_mdf.exec_conversion(input_file_path=self.cfg_data.mdf_conversion_input_file_path,
-                                                   use_same_input_file_name=True,
-                                                   output_file_name=self.cfg_data.mdf_conversion_output_file_path)
+                                               use_same_input_file_name=True,
+                                               output_file_name=self.cfg_data.mdf_conversion_output_file_path)
+        elif self.selection_comboBox.currentText() == "Eurotherm CSV Export Data":
+            pass
+        elif self.selection_comboBox.currentText() == "Eurotherm CSV Logged Data":
+            pass
         else:
             print("Wrong selection in selection_comboBox")
+
+        selected_text = self.selection_comboBox.currentText()
+        #gui_mdf_conversion_start_conversion_function(selected_text)
 
     def open_input_file_dialog(self):
         file_dialog = QFileDialog()
@@ -257,15 +267,17 @@ class Main_Widget(QWidget):
         elif self.selection_comboBox.currentText() == "Vector":
             selected_filter = possible_filters[4]  # .mf4
         else:
-            print("Wrong selection in selection_comboBox")
+            print("Pre-defined file extension not present")
+            selected_filter = possible_filters[1]
 
-        fileName, _ = file_dialog.getOpenFileName(self, caption="Select input CSV file",
+        fileNameList, _ = file_dialog.getOpenFileNames(self, caption="Select input CSV file",
                                                   dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_path),
                                                   filter=";;".join(possible_filters),
                                                   selectedFilter=selected_filter)
-
+        self.filename_list = fileNameList
+        fileName = fileNameList[0]
         if fileName:
-            self.cfg_data.mdf_conversion_input_file_path = fileName
+            self.cfg_data.mdf_conversion_input_file_path = fileName[0]
             self.input_file_path_label.setText(self.cfg_data.mdf_conversion_input_file_path)
             self.cfg_data.save_cfg_data_to_file()
 

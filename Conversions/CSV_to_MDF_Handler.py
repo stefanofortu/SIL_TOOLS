@@ -6,8 +6,6 @@ import numpy as np
 import pandas as pd
 
 class CSV_to_MDF_Handler:
-    def __init__(self):
-        pass
 
     @staticmethod
     def replace_cell(stringList, find_array, replace_array):
@@ -242,89 +240,92 @@ class CSV_to_MDF_Handler:
     # START CONFIGURATION
     # -------------------
     @staticmethod
-    def exec_substitution(input_file_path, use_same_input_file_name, output_file_name):
-        path = "C:\\Users\\stefano.fortunati\\Documents\\_LAVORO\\Schaeffler\\PXL_EDAG\\"
+    def exec_substitution(input_file_path, input_file_path_list, use_same_input_file_name, output_file_name):
+        input_file_path = None
+        for input_file in input_file_path_list:
+            path = "C:\\Users\\stefano.fortunati\\Documents\\_LAVORO\\Schaeffler\\PXL_EDAG\\"
 
-        # FILENAME SENZA ESTENSIONE !!!
-        filename = "19.08.2024_Schaeffler1_L012"
-        #df = pd.read_csv(path + filename + ".txt", sep="\t", encoding="latin1")
-        print(input_file_path)
-        df = pd.read_csv(input_file_path, sep="\t", encoding="latin1")
+            # FILENAME SENZA ESTENSIONE !!!
+            filename = "19.08.2024_Schaeffler1_L012"
+            #df = pd.read_csv(path + filename + ".txt", sep="\t", encoding="latin1")
+            print(input_file)
+            df = pd.read_csv(input_file, sep="\t", encoding="latin1")
 
-        # -------------------
-        # END CONFIGURATION
-        # -------------------
+            # -------------------
+            # END CONFIGURATION
+            # -------------------
 
-        # Inserimento di una colonna "time" con valori in 'datetime'
-        df.insert(1, 'time', pd.to_datetime(df[df.columns[0]],format="%d.%m.%Y %H:%M:%S,%f"))
-        start_time = df['time'].iloc[0]
+            # Inserimento di una colonna "time" con valori in 'datetime'
+            df.insert(1, 'time', pd.to_datetime(df[df.columns[0]],format="%d.%m.%Y %H:%M:%S,%f"))
+            start_time = df['time'].iloc[0]
 
-        # Inserimento di una colonna "relative_time" con valori in 'datetime'
-        df.insert(2, 'relative_time', df['time'] - start_time)
+            # Inserimento di una colonna "relative_time" con valori in 'datetime'
+            df.insert(2, 'relative_time', df['time'] - start_time)
 
-        # removed first column DateTime
-        # Cambia i formati dei dati in ingresso, escludendo la colonna DateTime
-        columns_to_process = df.columns[3:]
+            # removed first column DateTime
+            # Cambia i formati dei dati in ingresso, escludendo la colonna DateTime
+            columns_to_process = df.columns[3:]
 
-        for col_name in columns_to_process:
-            if df[col_name].dtypes == 'object':
-                try:
-                    df[col_name] = df[col_name].str.replace(',', '.').astype(float)
-                except:
+            for col_name in columns_to_process:
+                if df[col_name].dtypes == 'object':
+                    try:
+                        df[col_name] = df[col_name].str.replace(',', '.').astype(float)
+                    except:
+                        pass
+                elif df[col_name].dtypes == 'int64':
                     pass
-            elif df[col_name].dtypes == 'int64':
-                pass
-                # print("int ", col_name)
-            elif df[col_name].dtypes == 'float64':
-                # print("float64 ", col_name)
-                df[col_name] = df[col_name].replace(',', '.').astype(float)
-            else:
-                print(col_name)
-                print(df[col_name].dtypes)
+                    # print("int ", col_name)
+                elif df[col_name].dtypes == 'float64':
+                    # print("float64 ", col_name)
+                    df[col_name] = df[col_name].replace(',', '.').astype(float)
+                else:
+                    print(col_name)
+                    print(df[col_name].dtypes)
 
 
-        # ############
-        # STEP1 : modificare il data set, per trasformare da str a decimali i numeri
-        # ############
-        # original_data_frame = ""
+            # ############
+            # STEP1 : modificare il data set, per trasformare da str a decimali i numeri
+            # ############
+            # original_data_frame = ""
 
-        column_to_delete = []
-        for col_name in columns_to_process:
-            number_of_nan_values = df[col_name].isnull().sum()
-            column_size = df[col_name].size
-            if number_of_nan_values == column_size:
-                # print(col_name , ": all Nan")
-                column_to_delete.append(col_name)
+            column_to_delete = []
+            for col_name in columns_to_process:
+                number_of_nan_values = df[col_name].isnull().sum()
+                column_size = df[col_name].size
+                if number_of_nan_values == column_size:
+                    # print(col_name , ": all Nan")
+                    column_to_delete.append(col_name)
 
-        columns_to_process = [col for col in columns_to_process if col not in column_to_delete]
-        #############
-        ## STEP2 : creare asse dei tempi
-        #############
-        timestamps = np.array(df["relative_time"].apply(lambda x: x.seconds))
+            columns_to_process = [col for col in columns_to_process if col not in column_to_delete]
+            #############
+            ## STEP2 : creare asse dei tempi
+            #############
+            timestamps = np.array(df["relative_time"].apply(lambda x: x.seconds))
 
 
-        #############
-        ## STEP2 : creare i segnali effettivi dal dataframe
-        #############
+            #############
+            ## STEP2 : creare i segnali effettivi dal dataframe
+            #############
 
-        signals_list = []
+            signals_list = []
 
-        for col_name in columns_to_process:
-            signal = Signal(samples=np.array(df[col_name], dtype=df[col_name].dtypes),
-                            timestamps=timestamps, name=col_name, unit='')
+            for col_name in columns_to_process:
+                signal = Signal(samples=np.array(df[col_name], dtype=df[col_name].dtypes),
+                                timestamps=timestamps, name=col_name, unit='')
 
-            signals_list.append(signal)
+                signals_list.append(signal)
 
-        # create empty MDf version 4.00 file
-        with (MDF(version='4.10') as mdf4):
-            # append the signals to the new file
-            mdf4.append(signals_list, comment='imported')
-            mdf4.start_time = start_time.to_pydatetime()  # datetime.fromisoformat("2024-08-06 17:00:00")
-            # save new file
-            if use_same_input_file_name == True:
-                out_filename = input_file_path[:-4] + ".mf4"
-            else:
-                out_filename = output_file_name
-                mdf4.save(path + filename + ".mf4", overwrite=True)
-            #print(out_filename)
-            mdf4.save(out_filename, overwrite=True)
+            # create empty MDf version 4.00 file
+            with (MDF(version='4.10') as mdf4):
+                # append the signals to the new file
+                mdf4.append(signals_list, comment='imported')
+                mdf4.start_time = start_time.to_pydatetime()  # datetime.fromisoformat("2024-08-06 17:00:00")
+                # save new file
+                if use_same_input_file_name == True:
+                    out_filename = input_file[:-4] + ".mf4"
+                else:
+                    out_filename = output_file_name
+                    mdf4.save(path + filename + ".mf4", overwrite=True)
+                #print(out_filename)
+                mdf4.save(out_filename, overwrite=True)
+                print("Operation completed: ", out_filename)

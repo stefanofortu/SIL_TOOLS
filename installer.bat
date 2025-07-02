@@ -6,7 +6,7 @@ Rem Example: installer.bat 101
 
 Rem aggiungere "--noconsole" per evitare che si apra il cmd all'avvio
 
-set build_file=false
+set build_file=true
 
 IF "%1" == "-O" (
     set build_file=true
@@ -28,7 +28,7 @@ IF %build_file% == false (
 
 
 set copy_file=false
-IF "%2" == "-copy" (
+IF "%1" == "-copy" (
     set copy_file=true
 ) ELSE (
     ECHO INFO: Add option -copy to copy the file in web folder
@@ -39,8 +39,8 @@ Rem aggiungere "--noconsole" per evitare che si apra il cmd all'avvio
 IF %build_file% == true (
     ECHO Building executable file:
 Rem pyinstaller --specpath installer/build  --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --onefile --distpath installer --clean --workpath installer/build --name %file_name% main.py
-Rem pyinstaller main2.py --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --clean
-    pyinstaller main2.py --add-data "icons/*;." --icon "icons/test_new.ico" --clean
+    pyinstaller main.py --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --clean
+Rem pyinstaller main.py --add-data "icons/*;." --icon "icons/test_new.ico" --clean
 )
 
 IF %copy_file% == true (

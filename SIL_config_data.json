@@ -1,7 +1,7 @@
 {
     "root": {
         "SIL_CFG_DATA": {
-            "mdf_conversion_input_file": "C:/Users/stefano.fortunati/Desktop/TMM_2025-04-02 10-24-20_part156.mf4",
+            "mdf_conversion_input_file": "C",
             "mdf_conversion_output_file": "",
             "mdf_export_input_file": "",
             "mdf_elaboration_insert_read_by_value_delay": 0,

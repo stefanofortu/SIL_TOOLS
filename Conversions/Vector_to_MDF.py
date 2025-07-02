@@ -1,10 +1,7 @@
 from asammdf import MDF
 import xml.etree.ElementTree as ET
 
-
 class Vector_to_MDF:
-    def __init__(self):
-        pass
 
     @staticmethod
     def exec_conversion(input_file_path, use_same_input_file_name, output_file_name):
