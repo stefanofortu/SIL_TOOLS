@@ -3,11 +3,12 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatusBar, QVBoxLayout
 
 from Classes.Configuration_Data import Configuration_Data
-from Classes.Mdf_Elaboration_Widget import Mdf_Elaboration_Widget
-
 from Classes.QTextEditLogger import QTextEditLogger
 
-from Classes.Main_Widget import Main_Widget
+from Classes.MDF_Creator_Widget import MDF_Creator_Widget
+from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget
+from Classes.CSV_Creator_Widget import CSV_Creator_Widget
+
 from icons.resources import resource_path
 import logging
 
@@ -23,8 +24,9 @@ class MainWindow(QMainWindow):
         self.setGeometry(self.left, self.top, self.width, self.height)
 
         self.configuration_data = Configuration_Data()
-        self.csv_to_mdf_widget = Main_Widget(self.configuration_data)
-        self.mdf_elaboration_widget = Mdf_Elaboration_Widget(self.configuration_data)
+        self.mdf_creator_widget = MDF_Creator_Widget(self.configuration_data)
+        self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
+        self.csv_creator_widget = CSV_Creator_Widget(self.configuration_data)
 
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
@@ -69,18 +71,17 @@ class MainWindow(QMainWindow):
         tab_widget.setTabPosition(QTabWidget.North)
         tab_widget.setMovable(False)
 
-        tab_widget.insertTab(0, self.csv_to_mdf_widget, "MDF Conversions")
+        tab_widget.insertTab(0, self.mdf_creator_widget, "MDF Creator")
         tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
+        tab_widget.insertTab(2, self.csv_creator_widget, "CSV Creator")
 
-        # main_widget.insertTab(2, self.hil_function_widget, "HIL function")
-
-        logTextBox = QTextEditLogger(self)
-        logging.getLogger().addHandler(logTextBox)
+        #logTextBox = QTextEditLogger(self)
+        #logging.getLogger().addHandler(logTextBox)
 
         # Set main layout
         main_layout = QVBoxLayout()
         main_layout.addWidget(tab_widget)
-        main_layout.addWidget(logTextBox.widget)
+        #main_layout.addWidget(logTextBox.widget)
 
         # Serve un layout a cui assegnare il layout
         main_widget = QWidget()
