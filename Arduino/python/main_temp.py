@@ -2,10 +2,8 @@ import logging
 import sys
 from PySide6.QtWidgets import QApplication
 import PySide6
-from Classes.MainWindows import MainWindow
-#from Arduino.python.MainWindows_temp import MainWindow
+from Arduino.python.MainWindows_temp import MainWindow
 from Classes.QTextEditLogger import logging_setup
-
 
 if __name__ == '__main__':
     #logging_setup()
@@ -17,9 +15,7 @@ if __name__ == '__main__':
     else:
         logging.debug('running in a normal Python process')
     print(PySide6.__version__)
-    sys.argv += ['-platform', 'windows:darkmode=1']
     app = QApplication(sys.argv)
-    app.setStyle("Fusion")
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec())
