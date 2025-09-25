@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatu
 
 from Classes.Configuration_Data import Configuration_Data
 from Classes.Mdf_Elaboration_Widget import Mdf_Elaboration_Widget
-
+from Classes.Pwm_Reader_Widget import Pwm_Reader_Widget
 from Classes.QTextEditLogger import QTextEditLogger
 
 from Classes.Main_Widget import Main_Widget
@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.configuration_data = Configuration_Data()
         self.csv_to_mdf_widget = Main_Widget(self.configuration_data)
         self.mdf_elaboration_widget = Mdf_Elaboration_Widget(self.configuration_data)
-
+        self.pwm_reader_widget = Pwm_Reader_Widget()
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
         toolbar_action_new = QAction(QIcon(resource_path("new_configuration.png")), "New", self)
@@ -71,6 +71,7 @@ class MainWindow(QMainWindow):
 
         tab_widget.insertTab(0, self.csv_to_mdf_widget, "MDF Conversions")
         tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
+        tab_widget.insertTab(2, self.pwm_reader_widget, "Arduino set Conversions")
 
         # main_widget.insertTab(2, self.hil_function_widget, "HIL function")
 
