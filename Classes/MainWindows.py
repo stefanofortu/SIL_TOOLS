@@ -3,7 +3,7 @@ from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatusBar, QVBoxLayout
 
 from Classes.Configuration_Data import Configuration_Data
-from Classes.Mdf_Elaboration_Widget import Mdf_Elaboration_Widget
+from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget
 from Classes.Pwm_Reader_Widget import Pwm_Reader_Widget
 from Classes.QTextEditLogger import QTextEditLogger
 
@@ -29,8 +29,8 @@ class MainWindow(QMainWindow):
         self.mdf_creator_widget = MDF_Creator_Widget(self.configuration_data)
         self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.csv_creator_widget = CSV_Creator_Widget(self.configuration_data)
-        self.csv_to_mdf_widget = Main_Widget(self.configuration_data)
-        self.mdf_elaboration_widget = Mdf_Elaboration_Widget(self.configuration_data)
+        self.csv_to_mdf_widget = CSV_Creator_Widget(self.configuration_data)
+        self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.pwm_reader_widget = Pwm_Reader_Widget()
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
