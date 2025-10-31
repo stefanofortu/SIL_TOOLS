@@ -116,6 +116,7 @@ class EN4_TDMS_to_MDF:
                 # append the signals to the new file
                 mdf4.append(signals_list, comment='imported')
                 start_time = 0
+                mdf4.start_time = pd.to_datetime(TDMS_start_time)
                 # mdf4.start_time = start_time.to_pydatetime()  # datetime.fromisoformat("2024-08-06 17:00:00")
 
                 output_file_name_ = input_file[:-5] + ".mf4"
