@@ -1,5 +1,6 @@
 #define DUTY_CYCLE_PARAMETER_ID_OFFSET 16
 #define FEEDBACK_PARAMETER_ID_OFFSET 32
+#define MAX_NUMBER_OF_PUMP 10
 
 #define ARDUINO_UNO 1 
 #define ARDUINO_MEGA 2
@@ -29,105 +30,77 @@
   #define OUT_PWM_08_PIN 44
   #define OUT_PWM_09_PIN 45
   #define OUT_PWM_10_PIN 46
+  #define IN_PWM_01_PIN 22
+  #define IN_PWM_02_PIN 23
+  #define IN_PWM_03_PIN 24
+  #define IN_PWM_04_PIN 25
+  #define IN_PWM_05_PIN 26
+  #define IN_PWM_06_PIN 27
+  #define IN_PWM_07_PIN 28
+  #define IN_PWM_08_PIN 29
+  #define IN_PWM_09_PIN 30
+  #define IN_PWM_10_PIN 31
 #elif ARDUINO == ARDUINO_PORTENTA
   #define OUT_01_PIN 1
 #endif
 
-//int OUT_01_pin = 3;
-//int IN_01_pin = 2;
-//int OUT_02_pin = 5;
-//int IN_02_pin = 4;
-//int OUT_03_pin = 6;
-//int IN_03_pin = 7;
-//int OUT_04_pin = 9;
-//int IN_04_pin = 8;
-//int OUT_05_pin = 10;
-//int IN_05_pin = 12;
-//int OUT_06_pin = 11;
-//int IN_06_pin = 13;
+/**********************************************************************
+* VARIABILI GENERICHE
+**********************************************************************/
+unsigned long lastTime_us = 0;
+unsigned long last_input_read_ms = 0;  // stores the last time input was read
+unsigned long last_slow_update_ms = 0;  // stores the last time input was read
+const unsigned long input_sampling_interval_ms = 1;  // 1 ms interval
 
-//int OUT_07_pin = 19;
+int OUT_pins[MAX_NUMBER_OF_PUMP] = {OUT_PWM_01_PIN, OUT_PWM_02_PIN, OUT_PWM_03_PIN, OUT_PWM_04_PIN, OUT_PWM_05_PIN, OUT_PWM_06_PIN, OUT_PWM_07_PIN, OUT_PWM_08_PIN, OUT_PWM_09_PIN, OUT_PWM_10_PIN};
+int IN_pins[MAX_NUMBER_OF_PUMP] = {IN_PWM_01_PIN, IN_PWM_02_PIN, IN_PWM_03_PIN, IN_PWM_04_PIN, IN_PWM_05_PIN, IN_PWM_06_PIN, IN_PWM_07_PIN, IN_PWM_08_PIN, IN_PWM_09_PIN, IN_PWM_10_PIN};
 
-//int OUT_01_dutyCycle = 50;
-//const unsigned long manual_PWM_OUT_period_Hz = 75;
-//unsigned long manual_PWM_OUT_highTime;
-//unsigned long manual_PWM_OUT_lowTime;
-//unsigned long manual_PWM_OUT_previousMillis = 0;
-//bool manual_PWM_OUT_outputState = false;
+/**********************************************************************
+* VARIABILI SOTTO PARAMETRI ESTERNI
+**********************************************************************/
+int number_of_pumps = MAX_NUMBER_OF_PUMP;
 
-int OUT_pins[10] = {OUT_PWM_01_PIN, OUT_PWM_02_PIN, OUT_PWM_03_PIN, OUT_PWM_04_PIN, OUT_PWM_05_PIN, OUT_PWM_06_PIN, OUT_PWM_07_PIN, OUT_PWM_08_PIN, OUT_PWM_09_PIN, OUT_PWM_10_PIN};
-int PWM_duty_cycles[10] = {10, 20, 10, 20, 50, 60, 10, 50, 87, 5};
+/**********************************************************************
+* VARIABILI PER LA GESTIONE DEL PWM CUSTOM
+**********************************************************************/
+int PWM_duty_cycles[MAX_NUMBER_OF_PUMP] = {10, 20, 10, 20, 50, 60, 10, 50, 87, 5};
 float PWM_freq_Hz = 100;
 unsigned long PWM_period_us;
-unsigned long PWM_duty_cycles_high_time_us[10] = {0, 20, 30, 40, 50, 60, 70, 80, 90, 50};
-unsigned long PWM_duty_cycles_high_time_us_differential[10] = {0, 20, 30, 40, 50, 60, 70, 80, 90, 50};
+unsigned long PWM_duty_cycles_high_time_us[MAX_NUMBER_OF_PUMP] = {0, 20, 30, 40, 50, 60, 70, 80, 90, 50};
+unsigned long PWM_duty_cycles_high_time_us_differential[MAX_NUMBER_OF_PUMP] = {0, 20, 30, 40, 50, 60, 70, 80, 90, 50};
 unsigned long current_waiting_time_PWM = 0;
 unsigned long rest_time_PWM = 0;
-int PWM_duty_cycles_output_activation_order[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+int PWM_duty_cycles_output_activation_order[MAX_NUMBER_OF_PUMP] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 int current_index_PWM = 0;
- 
-//int OUT_02_dutyCycle = 50;
-//int OUT_03_dutyCycle = 50;
-//int OUT_04_dutyCycle = 50;
-//int OUT_05_dutyCycle = 50;
-//int OUT_06_dutyCycle = 50;
-//int OUT_07_dutyCycle = 0;
-//int OUT_08_dutyCycle = 0;
-//int OUT_09_dutyCycle = 0;
-//int OUT_10_dutyCycle = 0;
 
-//gestione timer
-//unsigned long lastTime = 0;
-//unsigned long lastPrint = 0;
-unsigned long lastTime_us = 0;
+/**********************************************************************
+* VARIABILI PER IL FEEDBACK POMPA
+**********************************************************************/
+// queste variabile vanno definite come volatile, perchè così non viene otimizzata dal compilatore
+volatile unsigned int pump_feedback_ms[MAX_NUMBER_OF_PUMP] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+volatile unsigned int last_pump_feedback_ms[MAX_NUMBER_OF_PUMP] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+bool use_timer1_for_sampling = true;
 
-//uint8_t data_TX[20];
-
-//lettura PWM
-//volatile unsigned long IN_01_lowStart = 0;
-//volatile unsigned long IN_01_lowDuration = 0;
-//volatile unsigned long IN_01_pump_feedback_duration_volatile = 0;
-//volatile unsigned long IN_01_pump_feedback_time_volatile=0;
-//unsigned long IN_01_pump_feedback_duration = 0;
-//unsigned long IN_01_pump_feedback_time = 0;
-//unsigned long IN_01_pump_last_feedback_time = 0;
 
 void setup() 
 {
-  for (int i = 0; i < 10; i++) 
+  // imposta la velocità a 9600 bps
+  Serial.begin(9600);
+
+
+  // set all the output pins come DIGITAL OUT
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
   {
     pinMode(OUT_pins[i], OUTPUT);
   }
 
-  // imposta pins come output
-  //pinMode(OUT_01_pin, OUTPUT);
-  //pinMode(OUT_02_pin, OUTPUT);
-  //pinMode(OUT_03_pin, OUTPUT);
-  //pinMode(OUT_04_pin, OUTPUT);
-  //pinMode(OUT_05_pin, OUTPUT);
-  //pinMode(OUT_06_pin, OUTPUT);
-
-  //configure_duty_cycles();
-  //configure_duty_cycles_manual_PWM();
-  //randomSeed(analogRead(A0));
-
-  // imposta la velocità a 9600 bps
-  Serial.begin(9600);
-
-  //pinMode(IN_01_pin, INPUT);
-  //pinMode(IN_01_pin, INPUT_PULLUP);
-  //attachInterrupt(digitalPinToInterrupt(IN_01_pin), measure_IN_01_low_duration, CHANGE);
-
-  //pinMode(IN_02_pin, INPUT_PULLUP);
-  //pinMode(IN_03_pin, INPUT_PULLUP);
-  //pinMode(IN_04_pin, INPUT_PULLUP);
-  //pinMode(IN_05_pin, INPUT_PULLUP);
-  //pinMode(IN_06_pin, INPUT_PULLUP);
-
+  /**********************************************
+  * SETUP PER LA GESTIONE DEL PWM CUSTOM
+  **********************************************/
+  // set all the output pins come DIGITAL OUT
   PWM_period_us = (unsigned long)(1000000 / PWM_freq_Hz);
-  Serial.print("PWM_period_us: ");
-  Serial.println(PWM_period_us);
-
+  //Serial.print("PWM_period_us: ");
+  //Serial.println(PWM_period_us);
   configure_duty_cycles_manual_PWM();
 
   //setta il tempo di attesa pari a 1 periodo
@@ -137,20 +110,50 @@ void setup()
   //setta il current index a -1;
   current_index_PWM = -1;
 
+  /*****************************************
+  * Configurazione input 
+  *****************************************/
+  // --- Set pins as inputs ---
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
+  {
+    pinMode(IN_pins[i], INPUT);
+  }
+  Serial.println("controllare INPUT_PULLUP");
+  // --- Configure Timer1 for 1kHz interrupt ---
+  noInterrupts();
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1  = 0;
+  OCR1A = 249;                          // (16MHz / (64 * 1000Hz)) - 1 = 249
+  TCCR1B |= (1 << WGM12);               // CTC mode
+  TCCR1B |= (1 << CS11) | (1 << CS10);  // prescaler = 64
+  if (use_timer1_for_sampling == true)
+  {
+    TIMSK1 |= (1 << OCIE1A);              // enable compare interrupt
+  }else{
+    TIMSK1 &= ~(1 << OCIE1A);             // disabilita l’interrupt di confronto A
+  }
+  interrupts();
+
+/*
+  // Configura Timer1
+  noInterrupts();           // disattiva interrupt globali
+  TCCR1A = 0;
+  TCCR1B = 0;
+  TCNT1  = 0;
+  OCR1A = 6249;             // valore di confronto per 10 Hz
+  TCCR1B |= (1 << WGM12);   // modalità CTC
+  TCCR1B |= (1 << CS12);    // prescaler = 256
+  TIMSK1 |= (1 << OCIE1A);  // abilita interrupt su OCR1A
+  interrupts();             // riattiva interrupt globali
+*/
+  Serial.println("If the 10 digital inputs are all on the same port (e.g., D2–D7 on Port D), read all 8 pins at once using direct port access, which is nearly instantaneous:");
 }
 
-void loop() {
-
-  // spostare questo blocci in "setup"
-  // genera un segnale PWM con duty cycle del 50%
-  //analogWrite(OUT_01_pin, map(OUT_01_dutyCycle, 0, 100, 0, 255));
-  //analogWrite(OUT_02_pin, map(OUT_02_dutyCycle, 0, 100, 0, 255));
-  //analogWrite(OUT_03_pin, map(OUT_03_dutyCycle, 0, 100, 0, 255));
-  //analogWrite(OUT_04_pin, map(OUT_04_dutyCycle, 0, 100, 0, 255));
-  //analogWrite(OUT_05_pin, map(OUT_05_dutyCycle, 0, 100, 0, 255));
-  //analogWrite(OUT_06_pin, map(OUT_06_dutyCycle, 0, 100, 0, 255));
-  
-  if (Serial.available()) {
+void loop() 
+{ 
+  if (Serial.available()) 
+  {
     String message = Serial.readStringUntil('\n');  // legge fino a newline
     message.trim();  // rimuove spazi vuoti o newline extra
     //Serial.print("Arduino received message:  ");
@@ -167,8 +170,7 @@ void loop() {
       }else{
         if (command == "2")
         {
-          String msg = encode_data();
-          Serial.println(msg);
+          Serial.println("non gestito");
         } 
         else  
         {
@@ -196,13 +198,16 @@ void loop() {
     }
   }
 
+  /**********************************************
+  * LOOP PER LA GESTIONE DEL PWM CUSTOM
+  **********************************************/
   if ((micros() - lastTime_us) >= current_waiting_time_PWM) 
   {
     lastTime_us = micros();
     //waiting_time_PWM = 
     if (current_index_PWM == -1) // se index == -1, allora vuol dire che il PWM è tutto in fase zero
     {
-      for (int i = 0; i < 10; i++) 
+      for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
       {
         digitalWrite(OUT_pins[i], HIGH);
       }
@@ -228,10 +233,6 @@ void loop() {
           digitalWrite(OUT_pins[PWM_duty_cycles_output_activation_order[9]], LOW);
           current_waiting_time_PWM = rest_time_PWM;
           current_index_PWM = -1;
-          //for (int i = 0; i < 10; i++) 
-          //{
-          //  digitalWrite(OUT_pins[i], LOW);
-          //}
         }
         else
         {
@@ -239,23 +240,74 @@ void loop() {
         }
       }
     }
-    //PWM_duty_cycles_output_activation_order[i]
-    //  waiting_time_PWM = 100;
-    //  print_status();
     //Serial.print("current_index_PWM : ");
     //Serial.println(current_index_PWM);
     //Serial.print("current_waiting_time_PWM : ");
     //Serial.println(current_waiting_time_PWM);
   }
   
-/*
+  unsigned long current_ms = millis();
+
+  if (use_timer1_for_sampling == false)
+  {
+    // duration of this loop = 64 us
+    if ((current_ms - last_input_read_ms) >= input_sampling_interval_ms) 
+    {
+      last_input_read_ms = current_ms;
+      for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
+      {
+        int value = digitalRead(IN_pins[i]);
+        if (value == HIGH)
+        {
+          last_pump_feedback_ms[i] = pump_feedback_ms[i];
+          pump_feedback_ms[i] = 0;
+        }else{
+          if (pump_feedback_ms[i] < 65500) // prevent overflow
+          {
+            pump_feedback_ms[i] = pump_feedback_ms[i] + 1;
+          }
+        }
+      }
+    }
+  }
+
+  if ((current_ms - last_slow_update_ms) >= 1*1000) 
+  {
+    last_slow_update_ms = current_ms;
+    Serial.print("pump_feedback_ms ");
+    for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
+    {
+      Serial.print(pump_feedback_ms[i]);
+      Serial.print(" - ");
+    }
+    Serial.println("");
+  }
+
+  
+  /*
+  const int inputPin = 2;   // digital input pin
+  const unsigned long interval = 1;  // 1 ms interval
+
+  void setup() {
+    Serial.begin(115200);
+    pinMode(inputPin, INPUT);
+  }
+
+  void loop() {
+    
+
+
+  }
+
+
+
   if (millis() - lastTime >= 10000) 
   {
     lastTime = millis();
     //print_status();
     //configure_duty_cycles_manual_PWM();
   }
-*/
+  */
   /*
   if (manual_PWM_OUT_outputState && (millis() - manual_PWM_OUT_previousMillis >= manual_PWM_OUT_highTime)) {
     // Turn OFF
@@ -317,6 +369,77 @@ void loop() {
 
 }
 
+/*
+ISR(TIMER1_COMPA_vect) 
+{
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
+  {
+    bool value = digitalRead(IN_pins[i]);
+    if (value == HIGH)
+    {
+      //Serial.println("high");
+      last_pump_feedback_ms[i] = pump_feedback_ms[i];
+      pump_feedback_ms[i] = 0;
+    }
+    else
+    {
+      if (pump_feedback_ms[i] < 65500) // prevent overflow
+      {
+        pump_feedback_ms[i] = pump_feedback_ms[i] + 1;
+        //if (i == 0){  Serial.println(pump_feedback_ms[0]);}
+      }
+    }
+  }
+}
+*/
+/*
+unsigned long startPress;
+unsigned long duration;
+
+void loop() {
+  if (digitalRead(2) == LOW) {   // pulsante premuto
+    startPress = micros();
+    while(digitalRead(2) == LOW); // aspetta rilascio
+    duration = micros() - startPress;
+    Serial.print("Durata pressione: ");
+    Serial.print(duration);
+    Serial.println(" µs");
+*/
+ISR(TIMER1_COMPA_vect) 
+{
+    bool value[10];
+    //bool value = digitalRead(IN_pins[i]);
+    value[0] = PINA & (1 << PA0); // Bit 0 → D22
+    value[1] = PINA & (1 << PA1); // Bit 1 → D23
+    value[2] = PINA & (1 << PA2); // Bit 2 → D24
+    value[3] = PINA & (1 << PA3); // Bit 3 → D25
+    value[4] = PINA & (1 << PA4); // Bit 4 → D26
+    value[5] = PINA & (1 << PA5); // Bit 5 → D27
+    value[6] = PINA & (1 << PA6); // Bit 6 → D28
+    value[7] = PINA & (1 << PA7); // Bit 7 → D29
+    value[8] = PINC & (1 << PC0);     // legge D30
+    value[9] = PINC & (1 << PC1);     // legge D31
+    
+    for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
+    {
+
+      if (value[i] == HIGH)
+      {
+        //Serial.println("high");
+        last_pump_feedback_ms[i] = pump_feedback_ms[i];
+        pump_feedback_ms[i] = 0;
+      }
+      else
+      {
+        if (pump_feedback_ms[i] < 65500) // prevent overflow
+        {
+          pump_feedback_ms[i] = pump_feedback_ms[i] + 1;
+          //if (i == 0){  Serial.println(pump_feedback_ms[0]);}
+        }
+      }
+    }
+}
+
 void get_parameter_value_on_serial(String parameter_id_hex)
 {
   int parameter_ID_value = (int) strtol(parameter_id_hex.c_str(), NULL, 16);
@@ -359,15 +482,15 @@ void get_parameter_value_on_serial(String parameter_id_hex)
 void set_parameter_value_from_serial(String parameter_id_hex, String parameter_value_hex)
 {
   int parameter_ID_value = (int) strtol(parameter_id_hex.c_str(), NULL, 16);
-  Serial.print("set_parameter_value_from_serial(): parameter_ID_value: ");
-  Serial.println(parameter_ID_value);
+  //Serial.print("set_parameter_value_from_serial(): parameter_ID_value: ");
+  //Serial.println(parameter_ID_value);
   int parameter_value_int = (int) strtol(parameter_value_hex.c_str(), NULL, 16);
-  Serial.print("set_parameter_value_from_serial(): parameter_value_int: ");
-  Serial.println(parameter_value_int);
+  //Serial.print("set_parameter_value_from_serial(): parameter_value_int: ");
+  //Serial.println(parameter_value_int);
 
   if (17 <= parameter_ID_value && parameter_ID_value <= 26)
   {
-    PWM_duty_cycles[parameter_ID_value-17] = parameter_value_int;
+    PWM_duty_cycles[parameter_ID_value-DUTY_CYCLE_PARAMETER_ID_OFFSET-1] = parameter_value_int;
     configure_duty_cycles_manual_PWM();
     char hex_pwm_value[3];  // 2 digits max + null terminator
     sprintf(hex_pwm_value, "%02X", parameter_value_int);
@@ -381,57 +504,11 @@ void set_parameter_value_from_serial(String parameter_id_hex, String parameter_v
   }
 }
 
-/*
-void print_status(){
-  Serial.println("01_DC:" + String(OUT_01_dutyCycle));
-  Serial.println("02_DC:" + String(OUT_02_dutyCycle));
-  Serial.println("03_DC:" + String(OUT_03_dutyCycle));
-  Serial.println("04_DC:" + String(OUT_04_dutyCycle));
-  Serial.println("05_DC:" + String(OUT_05_dutyCycle));
-  Serial.println("06_DC:" + String(OUT_06_dutyCycle));
-}
-*/
-
-
 long get_last_pump_feedback(int pump_ID)
 {
   return random(pump_ID*1000, (pump_ID+1)*1000);
 }
 
-String encode_data(){
-    String reply_message = "";
-    char hexString[3];
-    sprintf(hexString, "%02X", PWM_duty_cycles[0]);
-    reply_message = reply_message + "11:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[1]);
-    reply_message = reply_message + "12:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[2]);
-    reply_message = reply_message + "13:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[3]);
-    reply_message = reply_message + "14:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[4]);
-    reply_message = reply_message + "15:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[5]);
-    reply_message = reply_message + "16:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[6]);
-    reply_message = reply_message + "17:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[7]);
-    reply_message = reply_message + "18:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[8]);
-    reply_message = reply_message + "19:" + String(hexString) + ":";
-
-    sprintf(hexString, "%02X", PWM_duty_cycles[9]);
-    reply_message = reply_message + "1A:" + String(hexString);
-    return reply_message;
-}
 /*
 void configure_duty_cycles(){
   manual_PWM_OUT_highTime = manual_PWM_OUT_period_Hz * OUT_01_dutyCycle/100;
@@ -465,7 +542,7 @@ void measure_IN_01_low_duration() {
 */
 void configure_duty_cycles_manual_PWM()
 {
-  Serial.print("default duty: ");
+  /*
   Serial.print("PWM_duty_cycles ");
   for (int i = 0; i < 10; i++) 
   {
@@ -475,12 +552,13 @@ void configure_duty_cycles_manual_PWM()
     Serial.print(" - ");
   }
   Serial.println("");
-
-  for (int i = 0; i < 10; i++) 
+  */
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
   {
     PWM_duty_cycles_high_time_us[i] = (unsigned long) (PWM_period_us/100 * PWM_duty_cycles[i]) ;
   }
 
+  /*
   Serial.print("PWM_duty_cycles_high_time_us ");
   for (int i = 0; i < 10; i++) 
   {
@@ -490,30 +568,30 @@ void configure_duty_cycles_manual_PWM()
     Serial.print(" - ");
   }
   Serial.println("");
-
+  */
   //rest_time_PWM = differenza tra periodo (Periodo * 1'000'000 us) e il max dutycycle - inteso PWM_duty_cycles_high_time_us
   int size_duty_cycle = sizeof(PWM_duty_cycles_high_time_us) / sizeof(PWM_duty_cycles_high_time_us[0]);
-  Serial.print("size_duty_cycle: ");
-  Serial.print(size_duty_cycle);
-  Serial.println("");
+  //Serial.print("size_duty_cycle: ");
+  //Serial.print(size_duty_cycle);
+  //Serial.println("");
   unsigned long max_high_time = findMax(PWM_duty_cycles_high_time_us, size_duty_cycle);
-  Serial.print("max_high_time: ");
-  Serial.print(max_high_time);
-  Serial.println("");
+  //Serial.print("max_high_time: ");
+  //Serial.print(max_high_time);
+  //Serial.println("");
   rest_time_PWM = PWM_period_us - max_high_time;
-  Serial.print("rest_time_PWM: ");
-  Serial.print(rest_time_PWM);
-  Serial.println("");
+  //Serial.print("rest_time_PWM: ");
+  //Serial.print(rest_time_PWM);
+  //Serial.println("");
   // Inizializza orderedIndex con gli indici originali: 0,1,2,3,4
-  for (int i = 0; i < 10; i++)
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++)
   {
     PWM_duty_cycles_output_activation_order[i] = i;
   }
 
   // Ordina gli indici in base ai valori dell'array original
-  for (int i = 0; i < 10 - 1 ; i++) 
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP - 1 ; i++) 
   {
-    for (int j = 0; j < 10 - i - 1; j++) 
+    for (int j = 0; j < MAX_NUMBER_OF_PUMP - i - 1; j++) 
     {
       if (PWM_duty_cycles[PWM_duty_cycles_output_activation_order[j]] > PWM_duty_cycles[PWM_duty_cycles_output_activation_order[j + 1]]) 
       {
@@ -525,40 +603,42 @@ void configure_duty_cycles_manual_PWM()
     }
   }
 
+  /*
   Serial.print("PWM_duty_cycles_output_activation_order ");
-  for (int i = 0; i < 10; i++) 
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
   {
     Serial.print(PWM_duty_cycles_output_activation_order[i]);
     Serial.print(" - ");
   }
   Serial.println("");
-
-  for (int i = 0; i < 10; i++)
+  */
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++)
   {
     //here the time is not "differential", is the effective time, but ordered
     PWM_duty_cycles_high_time_us_differential[i] = PWM_duty_cycles_high_time_us[PWM_duty_cycles_output_activation_order[i]];
   }
-  
+  /*
   Serial.print("PWM_duty_cycles_high_time_us_ordered ");
-  for (int i = 0; i < 10; i++) 
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
   {
     Serial.print(PWM_duty_cycles_high_time_us_differential[i]);
     Serial.print(" - ");
   }
   Serial.println("");
-  
+  */
   for (int i = 9; i > 0; i--)
   {
     PWM_duty_cycles_high_time_us_differential[i] = PWM_duty_cycles_high_time_us_differential[i] - PWM_duty_cycles_high_time_us_differential[i-1];
   }
-
+  /*
   Serial.print("PWM_duty_cycles_high_time_us_differential ");
-  for (int i = 0; i < 10; i++) 
+  for (int i = 0; i < MAX_NUMBER_OF_PUMP; i++) 
   {
     Serial.print(PWM_duty_cycles_high_time_us_differential[i]);
     Serial.print(" - ");
   }
   Serial.println("");
+  */
 }
 
 
