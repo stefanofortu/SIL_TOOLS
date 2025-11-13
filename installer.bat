@@ -40,7 +40,8 @@ IF %build_file% == true (
     ECHO Building executable file:
 Rem pyinstaller --specpath installer/build  --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --onefile --distpath installer --clean --workpath installer/build --name %file_name% main.py
 Rem pyinstaller main.py --add-data "../../icons/*;." --icon "../../icons/test_new.ico" --clean
-    pyinstaller main.py --add-data "icons/*;." --icon "icons/test_new.ico" --clean
+Rem pyinstaller main.py --name SIL_tool --add-data "icons/*;." --icon "icons/test_new.ico" --clean --noconfirm
+    pyinstaller main.py --name SIL_tool --icon "../icons/test_new.ico" --add-data "../icons/*;." --clean --noconfirm --specpath installer/ --distpath installer --workpath installer/build
 )
 
 IF %copy_file% == true (
