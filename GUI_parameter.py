@@ -275,6 +275,7 @@ def post_parameter():
 
             pump_name = df_output_filt["Pump"].iloc[0]
             filename_in = "C:\\Users\\stefano.fortunati\\Desktop\\Tamb_xxx.xlsx"
+            filename_in = "C:\\Users\\stefano.fortunati\\Documents\\_TOOLS\\Parameters_template\\Tamb_xxx.xlsx""
             filename_out = filename_in.replace("_xxx.xlsx", "_" + pump_name + ".xlsx")
 
             #filename_out = "C:\\Users\\stefano.fortunati\\Desktop\\Tamb_P01.xlsx"
@@ -504,6 +505,7 @@ label_wd = tk.Label(root, text="Working directory/File", bg="lightblue")
 label_wd.grid(row=2, column=0, padx=10, pady=10, sticky='e')
 # Creiamo variabile dinamica per la stringa della working directory
 var_wd = tk.StringVar()
+
 # Creiamo label per visualizzare working directory
 label_var_wd = tk.Label(root, textvariable=var_wd, wraplength=400, bg="lightblue")
 label_var_wd.grid(row=2, column=1, columnspan=2, pady=10)
