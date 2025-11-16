@@ -152,7 +152,7 @@ class PumpRowGroupBox(QGroupBox):
 
         self.setStyleSheet("""
         QGroupBox::title {
-           subcontrol-origin: margin; padding: 0 5px; color: darkblue;
+           subcontrol-origin: margin; padding: 0 5px;
             }
         QGroupBox {
             font-size: 14px;
@@ -174,7 +174,7 @@ class PumpRowGroupBox(QGroupBox):
         group_layout.addWidget(self.spin_box_pump_speed)
 
         set_speed_button = QPushButton(self)
-        set_speed_button.setText("Set ➡")
+        set_speed_button.setText("   Set ➡   ")
         set_speed_button.setStyleSheet("font-weight: bold;")
         set_speed_button.setMaximumWidth(75)
         set_speed_button.pressed.connect(lambda: self.set_speed(self.pump_id, self.spin_box_pump_speed.value()))
@@ -190,7 +190,7 @@ class PumpRowGroupBox(QGroupBox):
         group_layout.addWidget(QLabel("Status :"))
 
         label_pump_status = QLabel("xxxx ms (FEEDBACK OK)")
-        label_pump_status.setStyleSheet("background-color: white; padding: 5px;")
+        label_pump_status.setStyleSheet("padding: 5px;")
         group_layout.addWidget(label_pump_status)
 
         # Add small circle widget
