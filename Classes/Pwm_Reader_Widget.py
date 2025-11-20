@@ -67,9 +67,18 @@ class Pwm_Reader_Widget(QWidget):
         # Add small circle widget
         self.circle_widget_com = CircleWidget(diameter=18, color="orange")
         com_port_layout.addWidget(self.circle_widget_com)
-
         com_port_layout.addStretch()
         self.main_layout.addLayout(com_port_layout)
+
+        manual_mode_layout = QHBoxLayout()
+        switch_button_label = QLabel("Select operating mode: ")
+        self.switch_button = SwitchButton()
+        #manual_mode_layout.addStretch()
+        manual_mode_layout.addWidget(switch_button_label)
+        manual_mode_layout.addWidget(self.switch_button)
+        manual_mode_layout.addStretch()
+        self.main_layout.addLayout(manual_mode_layout)
+
 
         self.gridLayout = QGridLayout()
 
@@ -216,6 +225,46 @@ class Pwm_Reader_Widget(QWidget):
             self.current_pump_feedback += 1
             if self.current_pump_feedback > 10:
                 self.current_pump_feedback = 1
+
+class SwitchButton(QPushButton):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setCheckable(True)
+        self.setChecked(True)
+        self.update_style()
+        self.toggled.connect(self.update_style)
+
+    def update_style(self):
+        print("here")
+        if self.isChecked():
+            self.setText("MANUAL MODE")
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: #ff3131;
+                    color: white;
+                    border-radius: 14px;
+                    padding: 6px 12px;
+                }
+            """)
+        else:
+            self.setText("AUTOMATIC MODE")
+            self.setStyleSheet("""
+                QPushButton {
+                    background-color: #4cd964;
+                    color: white;
+                    border-radius: 14px;
+                    padding: 6px 12px;
+                }
+            """)
+        #self.automatic_mode_is_active()
+
+    def automatic_mode_is_active(self):
+        if self.isChecked():
+            print("Automatic mode active")
+            return True
+        else:
+            print("Automatic mode not active")
+            return False
 
 
 class CircleWidget(QWidget):
