@@ -99,10 +99,12 @@ class EN4_TDMS_to_MDF:
             TDMS_duration = TDMS_increment*TDMS_number_of_sample
             if verbose:
                 print(f"TDMS_duration: ", TDMS_duration)
+                print(f"stop: ", TDMS_duration-TDMS_increment)
 
-            timestamps = np.arange(start=0, stop=TDMS_duration, step=TDMS_increment)
+            timestamps = np.linspace(start=0, stop=TDMS_duration, num=TDMS_number_of_sample, endpoint=False) #len(np.arange(start=0, stop=16100, step=1))
+            print(timestamps)
             if len(timestamps) != TDMS_number_of_sample:
-                print(f" WARNING : TDMS_number_of_sample ({TDMS_number_of_sample}) != does not match with TDMS_increment ({TDMS_increment})")
+                print(f" WARNING : TDMS_number_of_sample ({TDMS_number_of_sample}) does not match with len(timestamps) ({len(timestamps)})")
 
             ############# ## STEP2 : creare i segnali effettivi dal dataframe #############
             signals_list = []
