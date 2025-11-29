@@ -62,12 +62,12 @@ class PumpRowGroupBox(QGroupBox):
 
         self.setStyleSheet("""
         QGroupBox::title {
-           subcontrol-origin: margin; padding: 0 5px; color: darkblue;
+           subcontrol-origin: margin; padding: 0 5px; color: #3c91b9;
             }
         QGroupBox {
             font-size: 14px;
             font-weight: bold;
-            border: 1px solid blue;
+            border: 1px solid #3c91b9;
             border-radius: 5px;
             margin-top: 16px;
             }
@@ -85,8 +85,17 @@ class PumpRowGroupBox(QGroupBox):
 
         self.set_speed_button = QPushButton(self)
         self.set_speed_button.setText("Set ➡")
-        self.set_speed_button.setStyleSheet("font-weight: bold;")
-        self.set_speed_button.setMaximumWidth(75)
+        self.set_speed_button.setStyleSheet("font-weight: bold; background-color: #195977;")
+        self.set_speed_button.setStyleSheet("""
+            QPushButton {
+                background-color: #195977;
+                color: white;
+            }
+            QPushButton:hover { background-color: #1e688c; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
+        self.set_speed_button.setMinimumWidth(70)
+        self.set_speed_button.setMaximumWidth(100)
         self.set_speed_button.pressed.connect(
             lambda: self.set_pwm_speed(pump_id=self.pump_id,
                                        speed_value=self.spin_box_pump_speed.value())
@@ -94,26 +103,32 @@ class PumpRowGroupBox(QGroupBox):
 
         group_layout.addWidget(self.set_speed_button)
 
-        # Add explandable spacer
-        group_layout.addStretch()
-
         # Add fixed-width spacer
         group_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Fixed, QSizePolicy.Minimum))
 
-        group_layout.addWidget(QLabel("Status :"))
 
-        self.label_pump_status = QLabel("xxxx ms ()")
-        self.label_pump_status.setStyleSheet("background-color: white; padding: 5px;")
-        group_layout.addWidget(self.label_pump_status)
-
+        group_layout.addWidget(QLabel("Status: "))
         # Add small circle widget
         self.circle_widget_pump = CircleWidget(diameter=18, color="red")
         group_layout.addWidget(self.circle_widget_pump)
         self.circle_widget_pump.setColor("orange")
 
-        # Add another fixed-width spacer
-        group_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Fixed, QSizePolicy.Minimum))
+        self.label_pump_status = QLabel("2500 ms (OVERVOLTAGE)")
+        self.label_pump_status.setStyleSheet("""
+            QLabel {
+                color: #3c91b9;
+                font-weight: bold;
+                font-size: 13px;  /* increased font size */
+                padding: 8px;  /* space between text and border */
+            }
+        """)
 
+        group_layout.addWidget(self.label_pump_status)
+
+        # Add another fixed-width spacer
+        group_layout.addItem(QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum))
+        # Add explandable spacer
+        group_layout.addStretch()
         self.setLayout(group_layout)
 
     def set_pwm_speed(self, pump_id, speed_value):
@@ -176,47 +191,6 @@ class CircleWidget(QWidget):
     def setColor(self, new_color):
         self.color = QColor(new_color)
         self.update()  # Trigger repaint
-
-
-class SwitchButton(QPushButton):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setCheckable(True)
-        self.setChecked(True)
-        self.update_style()
-        self.toggled.connect(self.update_style)
-
-    def update_style(self):
-        print("here")
-        if self.isChecked():
-            self.setText("MANUAL MODE")
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #ff3131;
-                    color: white;
-                    border-radius: 14px;
-                    padding: 6px 12px;
-                }
-            """)
-        else:
-            self.setText("AUTOMATIC MODE")
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #4cd964;
-                    color: white;
-                    border-radius: 14px;
-                    padding: 6px 12px;
-                }
-            """)
-        #self.automatic_mode_is_active()
-
-    def automatic_mode_is_active(self):
-        if self.isChecked():
-            print("Automatic mode active")
-            return True
-        else:
-            print("Automatic mode not active")
-            return False
 
 
 class Automatic_Mode_Button(QPushButton):

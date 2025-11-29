@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QGridLayout, QPushButton, QSizePolicy, QSpacerItem
 import serial.tools.list_ports
 
 from Arduino.Arduino_Communication import Arduino_Communication
-from Arduino.Arduino_GUI_elements import PumpRowGroupBox, CircleWidget, SwitchButton, \
+from Arduino.Arduino_GUI_elements import PumpRowGroupBox, CircleWidget, \
     Automatic_Mode_Button, TestSequence
 from icons.resources import resource_path
 from openpyxl import load_workbook
@@ -58,16 +58,36 @@ class Pwm_Reader_Widget(QWidget):
         com_port_layout.addWidget(self.refresh_button)
 
         self.connect_button = QPushButton("Connect")
+        self.connect_button.setStyleSheet("""
+            QPushButton {
+                background-color: #195977;
+                color: white;
+                border-radius: 5px;
+                padding: 4px 8px;
+            }
+            QPushButton:hover { background-color: #1e688c; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
         self.connect_button.clicked.connect(self.start_arduino_communication)
         self.connect_button.setIcon(QIcon(resource_path("connect.png")))
         #self.refresh_button.setFixedSize(32, 32)
         com_port_layout.addWidget(self.connect_button)
 
-        self.connect_button = QPushButton("Disconnect")
-        self.connect_button.clicked.connect(self.stop_arduino_communication)
-        self.connect_button.setIcon(QIcon(resource_path("disconnect.png")))
+        self.disconnect_button = QPushButton("Disconnect")
+        self.disconnect_button.setStyleSheet("""
+            QPushButton {
+                background-color: #195977;
+                color: white;
+                border-radius: 5px;
+                padding: 4px 8px;
+            }
+            QPushButton:hover { background-color: #1e688c; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
+        self.disconnect_button.clicked.connect(self.stop_arduino_communication)
+        self.disconnect_button.setIcon(QIcon(resource_path("disconnect.png")))
         #self.refresh_button.setFixedSize(32, 32)
-        com_port_layout.addWidget(self.connect_button)
+        com_port_layout.addWidget(self.disconnect_button)
 
         # Add small circle widget
         self.circle_widget_com = CircleWidget(diameter=18, color="orange")
@@ -79,7 +99,6 @@ class Pwm_Reader_Widget(QWidget):
         switch_button_label = QLabel("Select operating mode: ")
         manual_mode_layout.addWidget(switch_button_label)
 
-        self.switch_button = SwitchButton()
         self.btn_auto_mode = Automatic_Mode_Button()
         self.btn_auto_mode.clicked.connect(self.automatic_button_action)
         #manual_mode_layout.addStretch()
