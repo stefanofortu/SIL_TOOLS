@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatu
 
 from Classes.Configuration_Data import Configuration_Data
 from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget
-from Classes.Pwm_Reader_Widget import Pwm_Reader_Widget
+from Arduino.PWM_Reader_Widget import Pwm_Reader_Widget
 from Classes.QTextEditLogger import QTextEditLogger
 
 from Classes.MDF_Creator_Widget import MDF_Creator_Widget

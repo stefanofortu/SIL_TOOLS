@@ -1,13 +1,17 @@
-import time
+import os
+from datetime import datetime
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QColor, QPainter, QIcon
-from PySide6.QtWidgets import QGridLayout, QLabel, QPushButton, QSizePolicy, QWidget, \
-    QSpacerItem, QSpinBox, QWidget, QGroupBox, QHBoxLayout, QComboBox, QVBoxLayout
+from PySide6.QtWidgets import QGridLayout, QPushButton, QSizePolicy, QSpacerItem, QSpinBox, QWidget, QGroupBox, \
+    QComboBox, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QMessageBox
 import serial.tools.list_ports
 
-from Classes.Arduino_Communication import Arduino_Communication
+from Arduino.Arduino_Communication import Arduino_Communication
+from Arduino.Arduino_GUI_elements import PumpRowGroupBox, CircleWidget, SwitchButton, \
+    Automatic_Mode_Button, TestSequence
 from icons.resources import resource_path
+from openpyxl import load_workbook
 
 
 def list_serial_ports_device():
@@ -34,6 +38,7 @@ class Pwm_Reader_Widget(QWidget):
         super(Pwm_Reader_Widget, self).__init__()
         self.setObjectName(u"Pwm_Reader_Widget")
         self.arduino_communication = Arduino_Communication()
+        self.test_sequence = TestSequence()
 
         self.main_layout = QVBoxLayout()
 
@@ -72,13 +77,15 @@ class Pwm_Reader_Widget(QWidget):
 
         manual_mode_layout = QHBoxLayout()
         switch_button_label = QLabel("Select operating mode: ")
-        self.switch_button = SwitchButton()
-        #manual_mode_layout.addStretch()
         manual_mode_layout.addWidget(switch_button_label)
-        manual_mode_layout.addWidget(self.switch_button)
+
+        self.switch_button = SwitchButton()
+        self.btn_auto_mode = Automatic_Mode_Button()
+        self.btn_auto_mode.clicked.connect(self.automatic_button_action)
+        #manual_mode_layout.addStretch()
+        manual_mode_layout.addWidget(self.btn_auto_mode)
         manual_mode_layout.addStretch()
         self.main_layout.addLayout(manual_mode_layout)
-
 
         self.gridLayout = QGridLayout()
 
@@ -123,14 +130,83 @@ class Pwm_Reader_Widget(QWidget):
         self.gridLayout.addWidget(self.row_group_box_pump_10, 4, 2)
 
         self.main_layout.addLayout(self.gridLayout)
+
+        # --- Layout inferiore ---
+        layout_automatic_mode = QHBoxLayout()
+        # Bottone Load Excel
+        self.btn_load_excel = QPushButton("Load Excel")
+        self.btn_load_excel.setIcon(QIcon.fromTheme("document-open"))
+        self.btn_load_excel.clicked.connect(self.load_excel)
+        self.btn_load_excel.setEnabled(False)
+
+        # Stile simile a Start/Stop
+        self.btn_load_excel.setStyleSheet("""
+            QPushButton {
+                background-color: #007bff;  /* blu */
+                color: white;
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover:!disabled { background-color: #0069d9; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
+        layout_automatic_mode.addWidget(self.btn_load_excel)
+
+        # Label per mostrare il nome del file
+        self.label_file = QLabel("Nessun file selezionato")
+        layout_automatic_mode.addWidget(self.label_file)
+
+        # Start e Stop
+        self.btn_start = QPushButton("▶ Start")
+        self.btn_start.setStyleSheet("""
+            QPushButton {
+                background-color: #28a745;
+                color: white;
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #218838; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
+        self.btn_start.setEnabled(False)
+        self.btn_start.clicked.connect(self.start_action)
+        layout_automatic_mode.addWidget(self.btn_start)
+
+        self.btn_stop = QPushButton("■ Stop")
+        self.btn_stop.setStyleSheet("""
+            QPushButton {
+                background-color: #dc3545;
+                color: white;
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover { background-color: #c82333; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+
+        """)
+        self.btn_stop.setEnabled(False)
+        self.btn_stop.clicked.connect(self.stop_action)
+        layout_automatic_mode.addWidget(self.btn_stop)
+
+        self.main_layout.addLayout(layout_automatic_mode)
         ############### SET MAIN LAYOUT
         self.setLayout(self.main_layout)
         ############### GUI END
 
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.check_feedback_status)
-        self.timer.start(4000)
+        #######################################################################
+        self.timer_feedback = QTimer()
+        self.timer_feedback.timeout.connect(self.check_feedback_status)
+        self.timer_feedback.start(4000)
         self.current_pump_feedback = 1
+        #######################################################################
+        # Timer per il "player"
+        self.timer_automatic_mode = QTimer()
+        self.timer_automatic_mode.timeout.connect(self.next_row)
+        self.current_index = 0
+        self.data = []
 
     def start_arduino_communication(self):
         res = self.arduino_communication.start(serial_port_name=self.com_ports_combobox.currentText())
@@ -160,35 +236,35 @@ class Pwm_Reader_Widget(QWidget):
                 #print(f"reply got {reply}")
                 parts = reply.split(":")
                 reply_frame_id_hex = parts[0]
-                reply_parameter_id_hex = parts[1]
+                reply_param_id_hex = parts[1]
                 reply_value_hex = parts[2]
                 # print(parts)
                 if reply_frame_id_hex != "3":
                     print("Reply message KO")
                 else:
-                    if int(reply_parameter_id_hex, 16) != parameter_id:
+                    if int(reply_param_id_hex, 16) != parameter_id:
                         print("Reply parameter KO")
                     else:
                         # print(f"OK {reply_parameter_id_hex}")
-                        if reply_parameter_id_hex == "11": self.row_group_box_pump_01.update_pwm_speed(
+                        if reply_param_id_hex == "11":
+                            self.row_group_box_pump_01.update_pwm_speed(reply_value_hex)
+                        if reply_param_id_hex == "12": self.row_group_box_pump_02.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "12": self.row_group_box_pump_02.update_pwm_speed(
+                        if reply_param_id_hex == "13": self.row_group_box_pump_03.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "13": self.row_group_box_pump_03.update_pwm_speed(
+                        if reply_param_id_hex == "14": self.row_group_box_pump_04.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "14": self.row_group_box_pump_04.update_pwm_speed(
+                        if reply_param_id_hex == "15": self.row_group_box_pump_05.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "15": self.row_group_box_pump_05.update_pwm_speed(
+                        if reply_param_id_hex == "16": self.row_group_box_pump_06.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "16": self.row_group_box_pump_06.update_pwm_speed(
+                        if reply_param_id_hex == "17": self.row_group_box_pump_07.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "17": self.row_group_box_pump_07.update_pwm_speed(
+                        if reply_param_id_hex == "18": self.row_group_box_pump_08.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "18": self.row_group_box_pump_08.update_pwm_speed(
+                        if reply_param_id_hex == "19": self.row_group_box_pump_09.update_pwm_speed(
                             reply_value_hex)
-                        if reply_parameter_id_hex == "19": self.row_group_box_pump_09.update_pwm_speed(
-                            reply_value_hex)
-                        if reply_parameter_id_hex == "1A": self.row_group_box_pump_10.update_pwm_speed(
+                        if reply_param_id_hex == "1A": self.row_group_box_pump_10.update_pwm_speed(
                             reply_value_hex)
 
     def check_feedback_status(self):
@@ -226,159 +302,100 @@ class Pwm_Reader_Widget(QWidget):
             if self.current_pump_feedback > 10:
                 self.current_pump_feedback = 1
 
-class SwitchButton(QPushButton):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setCheckable(True)
-        self.setChecked(True)
-        self.update_style()
-        self.toggled.connect(self.update_style)
-
-    def update_style(self):
-        print("here")
-        if self.isChecked():
-            self.setText("MANUAL MODE")
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #ff3131;
-                    color: white;
-                    border-radius: 14px;
-                    padding: 6px 12px;
-                }
-            """)
+    def automatic_button_action(self):
+        if self.btn_auto_mode.automatic_mode_active():
+            self.btn_load_excel.setDisabled(False)
+            self.btn_start.setDisabled(True)
+            self.btn_stop.setDisabled(True)
+            self.row_group_box_pump_01.disable_manual_input(True)
+            self.row_group_box_pump_02.disable_manual_input(True)
+            self.row_group_box_pump_03.disable_manual_input(True)
+            self.row_group_box_pump_04.disable_manual_input(True)
+            self.row_group_box_pump_05.disable_manual_input(True)
+            self.row_group_box_pump_06.disable_manual_input(True)
+            self.row_group_box_pump_07.disable_manual_input(True)
+            self.row_group_box_pump_08.disable_manual_input(True)
+            self.row_group_box_pump_09.disable_manual_input(True)
+            self.row_group_box_pump_10.disable_manual_input(True)
         else:
-            self.setText("AUTOMATIC MODE")
-            self.setStyleSheet("""
-                QPushButton {
-                    background-color: #4cd964;
-                    color: white;
-                    border-radius: 14px;
-                    padding: 6px 12px;
-                }
-            """)
-        #self.automatic_mode_is_active()
+            self.btn_load_excel.setDisabled(True)
+            self.btn_start.setDisabled(True)
+            self.btn_stop.setDisabled(True)
+            self.row_group_box_pump_01.enable_manual_input(True)
+            self.row_group_box_pump_02.enable_manual_input(True)
+            self.row_group_box_pump_03.enable_manual_input(True)
+            self.row_group_box_pump_04.enable_manual_input(True)
+            self.row_group_box_pump_05.enable_manual_input(True)
+            self.row_group_box_pump_06.enable_manual_input(True)
+            self.row_group_box_pump_07.enable_manual_input(True)
+            self.row_group_box_pump_08.enable_manual_input(True)
+            self.row_group_box_pump_09.enable_manual_input(True)
+            self.row_group_box_pump_10.enable_manual_input(True)
 
-    def automatic_mode_is_active(self):
-        if self.isChecked():
-            print("Automatic mode active")
-            return True
-        else:
-            print("Automatic mode not active")
-            return False
-
-
-class CircleWidget(QWidget):
-    def __init__(self, diameter=20, color="red"):
-        super().__init__()
-        self.diameter = diameter
-        self.color = color
-        self.setFixedSize(diameter, diameter)  # ensure the widget stays square
-
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.setBrush(QColor(self.color))
-        painter.setPen(Qt.NoPen)
-        painter.drawEllipse(0, 0, self.diameter, self.diameter)
-
-    def setColor(self, new_color):
-        self.color = QColor(new_color)
-        self.update()  # Trigger repaint
-
-
-class PumpRowGroupBox(QGroupBox):
-    def __init__(self, name, pump_id, serial_communication):
-        super(PumpRowGroupBox, self).__init__()
-        self.pump_id = pump_id
-        self.setTitle(name)
-        self.group_box_serial_communication = serial_communication
-
-        self.setStyleSheet("""
-        QGroupBox::title {
-           subcontrol-origin: margin; padding: 0 5px; color: darkblue;
-            }
-        QGroupBox {
-            font-size: 14px;
-            font-weight: bold;
-            border: 1px solid blue;
-            border-radius: 5px;
-            margin-top: 16px;
-            }
-        """)
-        group_layout = QHBoxLayout()
-
-        group_layout.addWidget(QLabel("Speed"))
-
-        self.spin_box_pump_speed = QSpinBox(self)
-        self.spin_box_pump_speed.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-        self.spin_box_pump_speed.setMinimumWidth(75)
-        self.spin_box_pump_speed.setMaximum(100)
-        self.spin_box_pump_speed.setSuffix(" %")
-        group_layout.addWidget(self.spin_box_pump_speed)
-
-        set_speed_button = QPushButton(self)
-        set_speed_button.setText("Set ➡")
-        set_speed_button.setStyleSheet("font-weight: bold;")
-        set_speed_button.setMaximumWidth(75)
-        set_speed_button.pressed.connect(
-            lambda: self.set_pwm_speed(pump_id=self.pump_id,
-                                       speed_value=self.spin_box_pump_speed.value())
+    def load_excel(self):
+        # Apri finestra dialogo per Excel
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Open Excel File", "", "Excel Files (*.xlsx *.xls)"
         )
+        try:
+            self.test_sequence.load_from_file(file_path, verbose=True)
+        except FileNotFoundError:
+            QMessageBox.critical(self, "Errore", f"File non trovato\n")
+            return []
+        except IndentationError:
+            QMessageBox.critical(self, "Errore", "Il file Excel non è formattato correttamente")
+            return []
+        except Exception as e:
+            QMessageBox.critical(self, "Errore", f"Impossibile leggere il file:\n{e}")
+            return []
 
-        group_layout.addWidget(set_speed_button)
+        # Stampa numero di righe non vuote
+        QMessageBox.information(self, "Excel Caricato", f"File caricato correttamente\n"
+                                                        f"Numero di step di test: {len(self.test_sequence)}")
+        self.btn_start.setEnabled(True)
 
-        # Add explandable spacer
-        group_layout.addStretch()
+        if not self.test_sequence.empty:
+            file_name = os.path.basename(file_path)
+            self.label_file.setText(file_name)
 
-        # Add fixed-width spacer
-        group_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Fixed, QSizePolicy.Minimum))
+    def start_action(self):
+        # Abilita Stop e disabilita Start
+        self.btn_stop.setEnabled(True)
+        self.btn_start.setEnabled(False)
+        self.start_time = 0  # riferimento tempo iniziale
+        self.timer_automatic_mode.start(100)  # timer veloce, calcola ritardo dai tempi
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-5]  # hh:mm:ss.mmm
+        print(f"[{timestamp}] Test started:")
+        self.current_index = 0
+        self.timer_automatic_mode.start(100)
 
-        group_layout.addWidget(QLabel("Status :"))
+    def stop_action(self):
+        self.timer_automatic_mode.stop()
+        # Disabilita Stop e abilita Start
+        self.btn_stop.setEnabled(False)
+        self.btn_start.setEnabled(True)
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-5]  # hh:mm:ss.mmm
+        print(f"[{timestamp}] Test completed:")
 
-        self.label_pump_status = QLabel("xxxx ms ()")
-        self.label_pump_status.setStyleSheet("background-color: white; padding: 5px;")
-        group_layout.addWidget(self.label_pump_status)
+    def next_row(self):
+        # Stampa con timestamp corrente
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-5]  # hh:mm:ss.mmm
 
-        # Add small circle widget
-        self.circle_widget_pump = CircleWidget(diameter=18, color="red")
-        group_layout.addWidget(self.circle_widget_pump)
-        self.circle_widget_pump.setColor("orange")
+        if self.current_index < len(self.test_sequence):
+            param = self.test_sequence.loc[self.current_index, "Parameter"]
+            value = self.test_sequence.loc[self.current_index, "Value"]
+            print(f"[{timestamp}] Parameter: {param}, Value: {value}")
 
-        # Add another fixed-width spacer
-        group_layout.addItem(QSpacerItem(20, 20, QSizePolicy.Fixed, QSizePolicy.Minimum))
+            # Calcolo intervallo per la prossima riga
+            if self.current_index < len(self.test_sequence) - 1:
+                delay = self.test_sequence.loc[self.current_index, "Delay[s]"]
+                interval = max(0, delay * 1000)  # converti in ms
+                self.timer_automatic_mode.start(interval)
 
-        self.setLayout(group_layout)
-
-    def set_pwm_speed(self, pump_id, speed_value):
-        print("==================================")
-        print("========SET DUTY===================")
-        duty_cycle_parameter_offset = 16
-        parameter_id = duty_cycle_parameter_offset + pump_id
-        message = f"4:{parameter_id:02X}:{speed_value:02X}"
-        self.group_box_serial_communication.write_message(message=message, verbose=True)
-
-    def update_pwm_speed(self, value_hex):
-        value_dec = int(value_hex, 16)
-        self.spin_box_pump_speed.setValue(value_dec)
-
-    def update_pump_status(self, value_hex):
-        value_dec = int(value_hex, 16)
-        value_dec = value_dec % 2500
-        pump_status = ""
-        if 450 <= value_dec <= 550:
-            pump_status = "FEEDBACK OK"
-            self.circle_widget_pump.setColor("green")
-        elif 950 <= value_dec <= 1050:
-            pump_status = "DRY RUN"
-            self.circle_widget_pump.setColor("red")
-        elif 1450 <= value_dec <= 1550:
-            pump_status = "OVERTEMPERATURE"
-            self.circle_widget_pump.setColor("red")
-        elif 1950 <= value_dec <= 2050:
-            pump_status = "UNDER-OVER-VOLTAGE"
-            self.circle_widget_pump.setColor("red")
+            self.current_index += 1
         else:
-            pump_status = "UNKNOWN"
-            self.circle_widget_pump.setColor("orange")
-
-        self.label_pump_status.setText(f"{value_dec} ms ({pump_status})")
+            self.timer_automatic_mode.stop()
+            self.btn_stop.setEnabled(False)
+            self.btn_start.setEnabled(True)
+            print(f"[{timestamp}] Test completed")
+            return
