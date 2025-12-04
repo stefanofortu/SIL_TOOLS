@@ -10,6 +10,7 @@ from Classes.QTextEditLogger import QTextEditLogger
 from Classes.MDF_Creator_Widget import MDF_Creator_Widget
 from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget
 from Classes.CSV_Creator_Widget import CSV_Creator_Widget
+from Vector.VectorFileGenerator import VectorFileGenerator
 
 from icons.resources import resource_path
 import logging
@@ -32,6 +33,8 @@ class MainWindow(QMainWindow):
         self.csv_to_mdf_widget = CSV_Creator_Widget(self.configuration_data)
         self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.pwm_reader_widget = Pwm_Reader_Widget()
+        self.vector_file_generator = VectorFileGenerator()
+
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
         toolbar_action_new = QAction(QIcon(resource_path("new_configuration.png")), "New", self)
@@ -75,10 +78,11 @@ class MainWindow(QMainWindow):
         tab_widget.setTabPosition(QTabWidget.North)
         tab_widget.setMovable(False)
 
-        tab_widget.insertTab(0, self.mdf_creator_widget, "MDF Creator")
-        tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
-        tab_widget.insertTab(2, self.csv_creator_widget, "CSV Creator")
-        tab_widget.insertTab(3, self.pwm_reader_widget, "Arduino set Conversions")
+        #tab_widget.insertTab(0, self.mdf_creator_widget, "MDF Creator")
+        #tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
+        #tab_widget.insertTab(2, self.csv_creator_widget, "CSV Creator")
+        #tab_widget.insertTab(3, self.pwm_reader_widget, "Arduino set Conversions")
+        tab_widget.insertTab(4, self.vector_file_generator, "Vector File Generator")
 
         #logTextBox = QTextEditLogger(self)
         #logging.getLogger().addHandler(logTextBox)
