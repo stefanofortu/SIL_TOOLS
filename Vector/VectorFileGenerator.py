@@ -5,52 +5,25 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from pathlib import Path
 
+from Classes.Configuration_Data import Configuration_Data
 from Vector.LDF_replacer import replace_LDF
 from Vector.CAPL_VALVES_replacer import replace_CAPL_VALVES
 from Vector.CAPL_replacer import replace_CAPL
 
 
 class VectorFileGenerator(QWidget):
-    def __init__(self):
+    def __init__(self, cfg_data):
         super().__init__()
-        self.setWindowTitle("Apri File")
-        self.setMinimumSize(500, 100)
+        self.setMinimumSize(750, 100)
+
+        if not isinstance(cfg_data, Configuration_Data):
+            print("cfg_data not Configuration_Data");
+            exit()
+
         # Layout principale (verticale, nel caso serva aggiungere altro)
         main_layout = QVBoxLayout()
 
-        self.CAPL_file_path = None
-        CAPL_selection_button = QPushButton("Select CAPL", self)
-        CAPL_selection_button.setMaximumWidth(150)
-        CAPL_selection_button.clicked.connect(self.CAPL_open_file)
-        self.CAPL_label = QLabel("No file selected", self)
-        self.CAPL_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        CAPL_convert_button = QPushButton("Run", self)
-        CAPL_convert_button.setMaximumWidth(100)
-        CAPL_convert_button.clicked.connect(self.CAPL_convert)
-        # Layout orizzontale per bottone + etichetta
-        CAPL_layout = QHBoxLayout()
-        CAPL_layout.addWidget(CAPL_selection_button)
-        CAPL_layout.addWidget(self.CAPL_label)
-        CAPL_layout.addWidget(CAPL_convert_button)
-        main_layout.addLayout(CAPL_layout)
-
-        self.CAPL_TMM_file_path = None
-        VALVE_selection_button = QPushButton("Select VALVE", self)
-        VALVE_selection_button.setMaximumWidth(150)
-        VALVE_selection_button.clicked.connect(self.CAPL_TMM_open_file)
-        self.VALVE_label = QLabel("No file selected", self)
-        self.VALVE_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        VALVE_convert_button = QPushButton("Run", self)
-        VALVE_convert_button.setMaximumWidth(100)
-        VALVE_convert_button.clicked.connect(self.CAPL_TMM_convert)
-        # Layout orizzontale per bottone + etichetta
-        VALVE_layout = QHBoxLayout()
-        VALVE_layout.addWidget(VALVE_selection_button)
-        VALVE_layout.addWidget(self.VALVE_label)
-        VALVE_layout.addWidget(VALVE_convert_button)
-        main_layout.addLayout(VALVE_layout)
-
-        self.LDF_file_path = None
+        #self.LDF_file_path = None
         LDF_selection_button = QPushButton("Select LDF", self)
         LDF_selection_button.setMaximumWidth(150)
         LDF_selection_button.clicked.connect(self.LDF_open_file)
@@ -66,56 +39,100 @@ class VectorFileGenerator(QWidget):
         LDF_layout.addWidget(LDF_convert_button)
         main_layout.addLayout(LDF_layout)
 
+        #self.CAPL_file_path = None
+        CAPL_selection_button = QPushButton("Select CAPL", self)
+        CAPL_selection_button.setMaximumWidth(150)
+        CAPL_selection_button.clicked.connect(self.CAPL_open_file)
+        self.CAPL_label = QLabel("No file selected", self)
+        self.CAPL_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        CAPL_convert_button = QPushButton("Run", self)
+        CAPL_convert_button.setMaximumWidth(100)
+        CAPL_convert_button.clicked.connect(self.CAPL_convert)
+        # Layout orizzontale per bottone + etichetta
+        CAPL_layout = QHBoxLayout()
+        CAPL_layout.addWidget(CAPL_selection_button)
+        CAPL_layout.addWidget(self.CAPL_label)
+        CAPL_layout.addWidget(CAPL_convert_button)
+        main_layout.addLayout(CAPL_layout)
+
+        #self.CAPL_TMM_file_path = None
+        VALVE_selection_button = QPushButton("Select VALVE", self)
+        VALVE_selection_button.setMaximumWidth(150)
+        VALVE_selection_button.clicked.connect(self.CAPL_TMM_open_file)
+        self.VALVE_label = QLabel("No file selected", self)
+        self.VALVE_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        VALVE_convert_button = QPushButton("Run", self)
+        VALVE_convert_button.setMaximumWidth(100)
+        VALVE_convert_button.clicked.connect(self.CAPL_TMM_convert)
+        # Layout orizzontale per bottone + etichetta
+        VALVE_layout = QHBoxLayout()
+        VALVE_layout.addWidget(VALVE_selection_button)
+        VALVE_layout.addWidget(self.VALVE_label)
+        VALVE_layout.addWidget(VALVE_convert_button)
+        main_layout.addLayout(VALVE_layout)
+
         self.setLayout(main_layout)
+
+        ############### LOAD DATA ######################
+        self.cfg_data = cfg_data
+        self.cfg_data.load_cfg_data_from_file()
+        self.LDF_label.setText(f"{self.shorten_path(self.cfg_data.vector_generator_ldf_file, folders=3)}")
+        self.LDF_label.setToolTip(self.cfg_data.vector_generator_ldf_file)
+        self.LDF_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.CAPL_label.setText(f"{self.shorten_path(self.cfg_data.vector_generator_capl_vcu_file, folders=3)}")
+        self.CAPL_label.setToolTip(self.cfg_data.vector_generator_capl_vcu_file)
+        self.CAPL_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.VALVE_label.setText(f"{self.shorten_path(self.cfg_data.vector_generator_capl_valve_file, folders=3)}")
+        self.VALVE_label.setToolTip(self.cfg_data.vector_generator_capl_valve_file)
+        self.VALVE_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
 
     def LDF_open_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Seleziona TMDS",
                                                    "C:\\Users\\stefano.fortunati\\OneDrive - Industrie Saleri Italo Spa\\Desktop\\TMM_Ceer",
                                                    "LDF (*.ldf);;Tutti i file (*)")
         if file_path:
-            self.LDF_label.setText(f"{self.shorten_path(file_path, folders=1)}")
+            self.LDF_label.setText(f"{self.shorten_path(file_path, folders=3)}")
             self.LDF_label.setToolTip(file_path)
-            self.LDF_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.LDF_file_path = file_path
-        else:
-            self.LDF_label.setText("No file selected")
+            self.LDF_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.cfg_data.vector_generator_ldf_file = file_path
+            self.cfg_data.save_cfg_data_to_file()
 
     def LDF_convert(self):
-        res = replace_LDF(self.LDF_file_path)
+        res = replace_LDF(self.cfg_data.vector_generator_ldf_file)
         print("LDF convert completed")
 
     def CAPL_open_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Seleziona CAPL",
+        file_path, _ = QFileDialog.getOpenFileName(self, "Seleziona CAPL TMM",
                                                    "C:\\Users\\stefano.fortunati\\OneDrive - Industrie Saleri Italo Spa\\Desktop\\TMM_Ceer",
                                                    "CAPL (*.can);;Tutti i file (*)")
         if file_path:
-            self.CAPL_label.setText(f"{self.shorten_path(file_path, folders=1)}")
+            self.CAPL_label.setText(f"{self.shorten_path(file_path, folders=3)}")
             self.CAPL_label.setToolTip(file_path)
-            self.CAPL_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.CAPL_file_path = file_path
-        else:
-            self.CAPL_label.setText("No file selected")
+            self.CAPL_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.cfg_data.vector_generator_capl_vcu_file = file_path
+            self.cfg_data.save_cfg_data_to_file()
 
     def CAPL_convert(self):
-        replace_CAPL(self.CAPL_file_path)
+        replace_CAPL(self.cfg_data.vector_generator_capl_vcu_file)
         print("CAPL conversion completed")
 
     def CAPL_TMM_open_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Seleziona CAPL",
+        file_path, _ = QFileDialog.getOpenFileName(self, "Seleziona CAPL VALVE",
                                                    "C:\\Users\\stefano.fortunati\\OneDrive - Industrie Saleri Italo Spa\\Desktop\\TMM_Ceer",
                                                    "CAPL (*.can);;Tutti i file (*)")
         if file_path:
             self.VALVE_label.setText(f"{file_path}")
-            self.VALVE_label.setText(f"{self.shorten_path(file_path, folders=1)}")
+            self.VALVE_label.setText(f"{self.shorten_path(file_path, folders=3)}")
             self.VALVE_label.setToolTip(file_path)
-            self.VALVE_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.CAPL_TMM_file_path = file_path
+            self.VALVE_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            self.cfg_data.vector_generator_capl_valve_file = file_path
+            self.cfg_data.save_cfg_data_to_file()
 
         else:
             self.VALVE_label.setText("No file selected")
 
     def CAPL_TMM_convert(self):
-        replace_CAPL_VALVES(self.CAPL_TMM_file_path)
+        replace_CAPL_VALVES(self.cfg_data.vector_generator_capl_valve_file)
         print("CAPL_TMM_convert completed")
 
     def shorten_path(self, full_path, folders=2):

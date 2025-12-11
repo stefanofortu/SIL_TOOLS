@@ -25,6 +25,10 @@ class Configuration_Data:  # CHANGE NAME TO FILE
         ####################### CSV CONVERTION #######################
         self.csv_conversion_input_file_combobox = ""
         self.csv_conversion_input_file_list = ""
+        ############# VECTOR GENERATOR ####################
+        self.vector_generator_ldf_file = ""
+        self.vector_generator_capl_vcu_file = ""
+        self.vector_generator_capl_valve_file = ""
         ####################### LOAD CFG #######################ì
         self.load_cfg_data_from_file()
 
@@ -91,6 +95,10 @@ class Configuration_Data:  # CHANGE NAME TO FILE
                         ############# CSV CONVERTION ####################
                         self.csv_conversion_input_file_combobox = cfg_data_dict['csv_conversion_input_file_combobox']
                         self.csv_conversion_input_file_list = cfg_data_dict['csv_conversion_input_file_list']
+                        ############# VECTOR GENERATOR ####################
+                        self.vector_generator_ldf_file = cfg_data_dict["Vector_generator_LDF_file"]
+                        self.vector_generator_capl_vcu_file = cfg_data_dict["Vector_generator_CAPL_VCU_file"]
+                        self.vector_generator_capl_valve_file = cfg_data_dict["Vector_generator_CAPL_VALVE_file"]
                     except KeyError:
                         print('Field in Conversion_to_MDF wrongly formatted')
                         sys.exit()
@@ -112,8 +120,7 @@ class Configuration_Data:  # CHANGE NAME TO FILE
             ############# TAB MDF ELABORATION ####################
             "mdf_conversion_input_file_list":  self.mdf_conversion_input_file_list,
             "mdf_conversion_output_file": self.mdf_conversion_output_file_path,
-            ############# TAB MDF ELABORATIO ####################
-
+            ############# TAB MDF ELABORATION ####################
             "mdf_elaboration_insert_read_by_value_delay": self.mdf_elaboration_insert_read_by_value_delay,
             "mdf_elaboration_insert_read_by_value_waiting": self.mdf_elaboration_insert_read_by_value_waiting,
             "mdf_elaboration_insert_read_by_value_time": self.mdf_elaboration_insert_read_by_value_time,
@@ -123,7 +130,11 @@ class Configuration_Data:  # CHANGE NAME TO FILE
             "mdf_elaboration_output_file": self.mdf_elaboration_output_file_path,
             ############# CSV CONVERTION ####################
             "csv_conversion_input_file_combobox": self.csv_conversion_input_file_combobox,
-            "csv_conversion_input_file_list": self.csv_conversion_input_file_list
+            "csv_conversion_input_file_list": self.csv_conversion_input_file_list,
+            ############# VECTOR GENERATOR ####################
+            "Vector_generator_LDF_file": self.vector_generator_ldf_file,
+            "Vector_generator_CAPL_VCU_file": self.vector_generator_capl_vcu_file,
+            "Vector_generator_CAPL_VALVE_file": self.vector_generator_capl_valve_file
         }
         )
 

@@ -31,9 +31,9 @@ class MainWindow(QMainWindow):
         self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.csv_creator_widget = CSV_Creator_Widget(self.configuration_data)
         self.csv_to_mdf_widget = CSV_Creator_Widget(self.configuration_data)
-        self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
+        #self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.pwm_reader_widget = Pwm_Reader_Widget()
-        self.vector_file_generator = VectorFileGenerator()
+        self.vector_file_generator = VectorFileGenerator(self.configuration_data)
 
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
