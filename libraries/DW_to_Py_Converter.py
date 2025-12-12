@@ -136,14 +136,16 @@ class Dewesoft_Converter(DWDataReader):
             samples = (ctypes.c_double * total_count)()
 
             timestamps = None
-            # if ch_type == DWChannelType.DW_CH_TYPE_ASYNC:
-            #    timestamps = (ctypes.c_double * sample_cnt.value)()
+            if ch_type == DWChannelType.DW_CH_TYPE_ASYNC:
+                timestamps = (ctypes.c_double * sample_cnt.value)()
+                print(f"Channel {ch_name} if async: changed timestamp base time")
 
             cmd_status = self.lib.DWIGetScaledSamples(self.reader_instance, ch.index, 0, sample_cnt, samples,
                                                       timestamps)
             if DWStatus(cmd_status) == DWStatus.DWSTAT_ERROR_CAN_NOT_SUPPORTED:
                 print("CAN Channel is not stored decoded, skipping...")
                 return
+
             check_error(self.lib, cmd_status)
 
             ###########################################################################
@@ -151,12 +153,18 @@ class Dewesoft_Converter(DWDataReader):
             #### DWChannelType.DW_CH_TYPE_SYNC AND ch.array_size != 1
             ###########################################################################
 
-            if ch_type != DWChannelType.DW_CH_TYPE_SYNC and ch.array_size != 1:
-                print("ch_type != DWChannelType.DW_CH_TYPE_SYNC and ch.array_size != 1")
-                exit()
+            if ch_type != DWChannelType.DW_CH_TYPE_SYNC:
+                print(f"Channel {ch_name} if asynchronous: ignored")
+                continue
+
+            if ch.array_size != 1:
+                print("ch.array_size != 1")
+                continue
+
             if verbose:
                 for i in range(0, sample_cnt.value, 200):
-                    print(f"  Value: {i} : {samples[i]:.2f}")
+                    #print(f"  Value: {i} : {samples[i]:.2f}")
+                    pass
 
             # samples è un puntatore a un array di 4887 double
             # Sample_cnt.value è la sua lunghezza (4887)
