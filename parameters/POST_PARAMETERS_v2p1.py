@@ -286,7 +286,7 @@ def post_parameter():
     df_output["Efficienza"] = 100 * (5 / 3 * df_output["DeltaP"] * df_output["Q"]) / (df_output["Vpump"] * df_output["Ipump"])
     df_output["Efficienza"] = df_output["Efficienza"].round(3)
     df_output["Vtarget"] = df_output["Vpump"].round().astype(int)
-    print(df_output)
+    #print(df_output)
 
 # elimina la cartella temporanea creata
     if os.path.exists(tmp_dir):
@@ -310,10 +310,11 @@ def post_parameter():
         for cat_name, condition in categories.items():
             df_cat = df_filt[condition(df_filt["Tcoolant"])]
             voltages_order = [float(v) for v in voltages2plot]
-# Applica l'ordinamento personalizzato per Vtarget e crescente per speed
+            # Applica l'ordinamento personalizzato per Vtarget e crescente per speed
             df2export = df_cat.copy()
             df2export["Vtarget"] = pd.Categorical(df2export["Vtarget"], categories=voltages_order, ordered=True)
             df2export = df2export.sort_values(by=["Vtarget", "speed"], ascending=[True, True]).reset_index(drop=True)
+            print(df2export)
             if not df2export.empty:
                 source_file = excel_file_name.get()# os.path.join(xlsx_folder, "Tamb_xxx.xlsx")
                 #new_name = "Tamb_" + pump.strip() + ".xlsx"
@@ -361,7 +362,7 @@ def post_parameter():
 def read_dxd(filename):
     dewesoft_converter = Dewesoft_Converter()
     dewesoft_converter.open(filename=filename)
-    df_tmp = dewesoft_converter.to_pandas(verbose=True)
+    df_tmp = dewesoft_converter.to_pandas(verbose=False)
     dewesoft_converter.close()
     df_tmp["Time"]=df_tmp["timestamp"]
     df_tmp["Time"] = df_tmp["Time"].dt.tz_localize(None).dt.floor("ms")
