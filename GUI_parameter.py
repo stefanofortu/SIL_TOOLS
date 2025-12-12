@@ -242,7 +242,7 @@ def post_parameter():
     else:
         working_dir = os.path.dirname(working_dir)
     os.makedirs(working_dir + "/output_csv", exist_ok=True)
-    with pd.ExcelWriter(working_dir + "/" + pump_name + ".xlsx", engine='openpyxl') as writer:
+    with (pd.ExcelWriter(working_dir + "/" + pump_name + ".xlsx", engine='openpyxl') as writer):
         for pump in df_output["Pump"].unique():
             df_output_filt = df_output[df_output["Pump"] == pump]
 
@@ -274,8 +274,13 @@ def post_parameter():
                 path_separator = "\\"
 
             pump_name = df_output_filt["Pump"].iloc[0]
+<<<<<<< Updated upstream
             filename_in = "C:\\Users\\stefano.fortunati\\Desktop\\Tamb_xxx.xlsx"
             filename_in = "C:\\Users\\stefano.fortunati\\Documents\\_TOOLS\\Parameters_template\\Tamb_xxx.xlsx""
+=======
+            filename_in = r"Z:\2025\2025_01_03_0431\2.Parameter_Pre_test\Tamb_xxx.xlsx"
+            #"C:\\Users\\stefano.fortunati\\Desktop\\Tamb_xxx.xlsx"
+>>>>>>> Stashed changes
             filename_out = filename_in.replace("_xxx.xlsx", "_" + pump_name + ".xlsx")
 
             #filename_out = "C:\\Users\\stefano.fortunati\\Desktop\\Tamb_P01.xlsx"
@@ -289,7 +294,7 @@ def post_parameter():
                 # except:
                 # logger.error("Error occurred while copying file.")
 
-            wb = load_workbook("C:\\Users\\stefano.fortunati\\Desktop\\Tamb_P01.xlsx")
+            wb = load_workbook(filename_out) #"C:\\Users\\stefano.fortunati\\Desktop\\Tamb_P01.xlsx")
 
             # OPTION 2 to modify an existing wb
             ws = wb["Data_Entry"]
