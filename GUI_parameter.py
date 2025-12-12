@@ -275,8 +275,13 @@ def post_parameter():
 
             pump_name = df_output_filt["Pump"].iloc[0]
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             filename_in = "C:\\Users\\stefano.fortunati\\Desktop\\Tamb_xxx.xlsx"
             filename_in = "C:\\Users\\stefano.fortunati\\Documents\\_TOOLS\\Parameters_template\\Tamb_xxx.xlsx""
+=======
+            filename_in = r"Z:\2025\2025_01_03_0431\2.Parameter_Pre_test\Tamb_xxx.xlsx"
+            #"C:\\Users\\stefano.fortunati\\Desktop\\Tamb_xxx.xlsx"
+>>>>>>> Stashed changes
 =======
             filename_in = r"Z:\2025\2025_01_03_0431\2.Parameter_Pre_test\Tamb_xxx.xlsx"
             #"C:\\Users\\stefano.fortunati\\Desktop\\Tamb_xxx.xlsx"
