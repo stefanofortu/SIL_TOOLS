@@ -2,6 +2,7 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatusBar, QVBoxLayout
 
+from Arduino.Performance_Curves import Performance_Curves
 from Classes.Configuration_Data import Configuration_Data
 from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget
 from Arduino.PWM_Reader_Widget import Pwm_Reader_Widget
@@ -32,6 +33,7 @@ class MainWindow(QMainWindow):
         self.csv_to_mdf_widget = CSV_Creator_Widget(self.configuration_data)
         self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.pwm_reader_widget = Pwm_Reader_Widget()
+        self.performance_curves = Performance_Curves()
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
         toolbar_action_new = QAction(QIcon(resource_path("new_configuration.png")), "New", self)
@@ -70,22 +72,23 @@ class MainWindow(QMainWindow):
         self.setStatusBar(QStatusBar(self))
 
         # definisci il widget delle tab
-        tab_widget = QTabWidget()
-        tab_widget.setDocumentMode(True)
-        tab_widget.setTabPosition(QTabWidget.North)
-        tab_widget.setMovable(False)
+        self.tab_widget = QTabWidget()
+        self.tab_widget.setDocumentMode(True)
+        self.tab_widget.setTabPosition(QTabWidget.North)
+        self.tab_widget.setMovable(False)
 
-        tab_widget.insertTab(0, self.mdf_creator_widget, "MDF Creator")
-        tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
-        tab_widget.insertTab(2, self.csv_creator_widget, "CSV Creator")
-        tab_widget.insertTab(3, self.pwm_reader_widget, "Arduino set Conversions")
+        #tab_widget.insertTab(0, self.mdf_creator_widget, "MDF Creator")
+        #tab_widget.insertTab(1, self.mdf_elaboration_widget, "MDF Elaboration")
+        #tab_widget.insertTab(2, self.csv_creator_widget, "CSV Creator")
+        self.tab_widget.insertTab(3, self.pwm_reader_widget, "Arduino set Conversions")
+        self.tab_widget.insertTab(4, self.performance_curves, "Performance Curves")
 
         #logTextBox = QTextEditLogger(self)
         #logging.getLogger().addHandler(logTextBox)
 
         # Set main layout
         main_layout = QVBoxLayout()
-        main_layout.addWidget(tab_widget)
+        main_layout.addWidget(self.tab_widget)
         #main_layout.addWidget(logTextBox.widget)
 
         # Serve un layout a cui assegnare il layout

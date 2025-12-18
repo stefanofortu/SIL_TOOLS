@@ -173,6 +173,109 @@ class PumpRowGroupBox(QGroupBox):
 
         self.label_pump_status.setText(f"{value_dec} ms ({pump_status})")
 
+class ParameterBox(QGroupBox):
+    def __init__(self, parameter_name, parameter_id, min_value, max_value, label, serial_communication):
+        super(ParameterBox, self).__init__()
+        self.setTitle(parameter_name)
+        self.parameter_id = parameter_id
+        self.group_box_serial_communication = serial_communication
+
+        self.setStyleSheet("""
+        QGroupBox::title {
+           subcontrol-origin: margin; padding: 0 5px; color: #3c91b9;
+            }
+        QGroupBox {
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #3c91b9;
+            border-radius: 5px;
+            margin-top: 16px;
+            }
+        """)
+        group_layout = QHBoxLayout()
+
+        #group_layout.addWidget(QLabel("Value"))
+
+        self.spin_box_param_value = QSpinBox(self)
+        self.spin_box_param_value.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+        self.spin_box_param_value.setMinimumWidth(100)
+        self.spin_box_param_value.setMinimum(min_value)
+        self.spin_box_param_value.setMaximum(max_value)
+        self.spin_box_param_value.setSuffix(" "+label)
+        group_layout.addWidget(self.spin_box_param_value)
+
+        self.set_speed_button = QPushButton(self)
+        self.set_speed_button.setText("Set ➡")
+        self.set_speed_button.setStyleSheet("font-weight: bold; background-color: #195977;")
+        self.set_speed_button.setStyleSheet("""
+            QPushButton {
+                background-color: #195977;
+                color: white;
+            }
+            QPushButton:hover { background-color: #1e688c; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
+        self.set_speed_button.setMinimumWidth(70)
+        self.set_speed_button.setMaximumWidth(100)
+        self.set_speed_button.pressed.connect(
+            lambda: self.set_parameter_value(pump_id=self.parameter_id,
+                                       speed_value=self.spin_box_pump_speed.value())
+        )
+        group_layout.addWidget(self.set_speed_button)
+
+        # Add fixed-width spacer
+        group_layout.addItem(QSpacerItem(10, 10, QSizePolicy.Fixed, QSizePolicy.Minimum))
+
+        group_layout.addWidget(QLabel("Current Value: "))
+        # Add small circle widget
+        #self.circle_widget_pump = CircleWidget(diameter=18, color="red")
+        #group_layout.addWidget(self.circle_widget_pump)
+        #self.circle_widget_pump.setColor("orange")
+
+        self.label_param_status = QLabel("---" + " " + label)
+        self.label_param_status.setStyleSheet("""
+                    QLabel {
+                        color: #3c91b9;
+                        font-weight: bold;
+                        font-size: 13px;  /* increased font size */
+                        padding: 8px;  /* space between text and border */
+                    }
+                """)
+
+        group_layout.addWidget(self.label_param_status)
+
+        # Add another fixed-width spacer
+        #group_layout.addItem(QSpacerItem(15, 15, QSizePolicy.Fixed, QSizePolicy.Minimum))
+
+
+        # Add explandable spacer
+        group_layout.addStretch()
+        self.setLayout(group_layout)
+
+    def set_parameter_value(self, pump_id, speed_value):
+        print("========SET PARAMETER VALUE ===================")
+        #duty_cycle_parameter_offset = 16
+        #parameter_id = duty_cycle_parameter_offset + pump_id
+        #message = f"4:{parameter_id:02X}:{speed_value:02X}"
+        #self.group_box_serial_communication.write_message(message=message, verbose=True)
+
+    def disable_manual_input(self, arg: bool):
+        self.setDisabled(arg)
+        self.set_speed_button.setDisabled(arg)
+
+    def enable_manual_input(self, arg: bool):
+        self.spin_box_param_value.setEnabled(arg)
+        self.set_speed_button.setEnabled(arg)
+
+    def update_pwm_speed(self, value_hex):
+        value_dec = int(value_hex, 16)
+        self.spin_box_param_value.setValue(value_dec)
+
+    def update_pump_status(self, value_hex):
+        value_dec = int(value_hex, 16)
+        self.label_param_status.setText(f"{value_dec} ms")
+
+
 
 class CircleWidget(QWidget):
     def __init__(self, diameter=20, color="red"):

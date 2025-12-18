@@ -9,7 +9,7 @@ import serial.tools.list_ports
 
 from Arduino.Arduino_Communication import Arduino_Communication
 from Arduino.Arduino_GUI_elements import PumpRowGroupBox, CircleWidget, \
-    Automatic_Mode_Button, TestSequence
+    Automatic_Mode_Button, TestSequence, ParameterBox
 from icons.resources import resource_path
 from openpyxl import load_workbook
 
@@ -28,14 +28,14 @@ def list_serial_ports_description():
     return ports_list
 
 
-class Pwm_Reader_Widget(QWidget):
+class Performance_Curves(QWidget):
     def refresh_ports(self):
         """Refresh the COM port list."""
         self.com_ports_combobox.clear()
         self.com_ports_combobox.addItems(list_serial_ports_description())
 
     def __init__(self):
-        super(Pwm_Reader_Widget, self).__init__()
+        super(Performance_Curves, self).__init__()
         self.setObjectName(u"Pwm_Reader_Widget")
         self.arduino_communication = Arduino_Communication()
         self.test_sequence = TestSequence()
@@ -107,75 +107,21 @@ class Pwm_Reader_Widget(QWidget):
         self.main_layout.addLayout(manual_mode_layout)
 
         self.gridLayout = QGridLayout()
+        self.eValve_box = ParameterBox(parameter_name="ElettroValvola", parameter_id=10,
+                                   min_value=0, max_value=10000, label="mV",
+                                   serial_communication=self.arduino_communication)
+        self.gridLayout.addWidget(self.eValve_box,0,0)
+        self.gridLayout.addItem(QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum), 0, 1)
 
-        self.row_group_box_pump_01 = PumpRowGroupBox(name="Pump 01", pump_id=1,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_01, 0, 0)
-        self.gridLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Fixed, QSizePolicy.Minimum), 0, 1)
-        self.row_group_box_pump_02 = PumpRowGroupBox("Pump 02", pump_id=2,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_02, 0, 2)
-
-        self.row_group_box_pump_03 = PumpRowGroupBox(name="Pump 03", pump_id=3,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_03, 1, 0)
-        self.gridLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Fixed, QSizePolicy.Minimum), 1, 1)
-        self.row_group_box_pump_04 = PumpRowGroupBox(name="Pump 04", pump_id=4,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_04, 1, 2)
-
-        self.row_group_box_pump_05 = PumpRowGroupBox(name="Pump 05", pump_id=5,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_05, 2, 0)
-        self.gridLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Fixed, QSizePolicy.Minimum), 2, 1)
-        self.row_group_box_pump_06 = PumpRowGroupBox(name="Pump 06", pump_id=6,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_06, 2, 2)
-
-        self.row_group_box_pump_07 = PumpRowGroupBox(name="Pump 07", pump_id=7,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_07, 3, 0)
-        self.gridLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Fixed, QSizePolicy.Minimum), 3, 1)
-        self.row_group_box_pump_08 = PumpRowGroupBox("Pump 08", pump_id=8,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_08, 3, 2)
-
-        self.row_group_box_pump_09 = PumpRowGroupBox(name="Pump 09", pump_id=9,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_09, 4, 0)
-        self.gridLayout.addItem(QSpacerItem(10, 10, QSizePolicy.Fixed, QSizePolicy.Minimum), 4, 1)
-        self.row_group_box_pump_10 = PumpRowGroupBox(name="Pump 10", pump_id=10,
-                                                     serial_communication=self.arduino_communication)
-        self.gridLayout.addWidget(self.row_group_box_pump_10, 4, 2)
+        self.read_box = ParameterBox(parameter_name="Read", parameter_id=10,
+                                   min_value=0, max_value=1, label="",
+                                   serial_communication=self.arduino_communication)
+        self.gridLayout.addWidget(self.read_box,0,2)
+        self.gridLayout.addItem(QSpacerItem(10, 20, QSizePolicy.Fixed, QSizePolicy.Minimum), 0, 3)
 
         self.main_layout.addLayout(self.gridLayout)
-
         # --- Layout inferiore ---
         layout_automatic_mode = QHBoxLayout()
-        # Bottone Load Excel
-        self.btn_load_excel = QPushButton("Load Excel")
-        self.btn_load_excel.setIcon(QIcon.fromTheme("document-open"))
-        self.btn_load_excel.clicked.connect(self.load_excel)
-        self.btn_load_excel.setEnabled(False)
-
-        # Stile simile a Start/Stop
-        self.btn_load_excel.setStyleSheet("""
-            QPushButton {
-                background-color: #007bff;  /* blu */
-                color: white;
-                border-radius: 10px;
-                padding: 6px 12px;
-                font-weight: bold;
-            }
-            QPushButton:hover:!disabled { background-color: #0069d9; }
-            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
-        """)
-        layout_automatic_mode.addWidget(self.btn_load_excel)
-
-        # Label per mostrare il nome del file
-        self.label_file = QLabel("Nessun file selezionato")
-        layout_automatic_mode.addWidget(self.label_file)
-
         # Start e Stop
         self.btn_start = QPushButton("▶ Start")
         self.btn_start.setStyleSheet("""
@@ -204,13 +150,37 @@ class Pwm_Reader_Widget(QWidget):
             }
             QPushButton:hover { background-color: #c82333; }
             QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
-
         """)
         self.btn_stop.setEnabled(False)
         self.btn_stop.clicked.connect(self.stop_action)
         layout_automatic_mode.addWidget(self.btn_stop)
 
+        # Bottone Load Excel
+        self.btn_load_excel = QPushButton("Change Curve Coonfiguration Excel")
+        self.btn_load_excel.setIcon(QIcon.fromTheme("document-open"))
+        self.btn_load_excel.clicked.connect(self.load_excel)
+        self.btn_load_excel.setEnabled(False)
+
+        # Stile simile a Start/Stop
+        self.btn_load_excel.setStyleSheet("""
+            QPushButton {
+                background-color: #007bff;  /* blu */
+                color: white;
+                border-radius: 10px;
+                padding: 6px 12px;
+                font-weight: bold;
+            }
+            QPushButton:hover:!disabled { background-color: #0069d9; }
+            QPushButton:disabled { background-color: #a0a0a0; color: #666666; }
+        """)
+        layout_automatic_mode.addWidget(self.btn_load_excel)
+
+        # Label per mostrare il nome del file
+        self.label_file = QLabel("Nessun file selezionato")
+        layout_automatic_mode.addWidget(self.label_file)
+
         self.main_layout.addLayout(layout_automatic_mode)
+        self.main_layout.addStretch()
         ############### SET MAIN LAYOUT
         self.setLayout(self.main_layout)
         ############### GUI END
@@ -324,38 +294,25 @@ class Pwm_Reader_Widget(QWidget):
     def automatic_button_action(self):
         if self.btn_auto_mode.automatic_mode_active():
             self.btn_load_excel.setDisabled(False)
-            self.btn_start.setDisabled(True)
+            self.load_excel(file_path="C:\\Users\\stefano.fortunati\\PythonProjects\\SIL_TOOLS\\Arduino\\Curves_Cfg\\Test_Sequence_Example.xlsx")
+            self.btn_start.setDisabled(False)
             self.btn_stop.setDisabled(True)
-            self.row_group_box_pump_01.disable_manual_input(True)
-            self.row_group_box_pump_02.disable_manual_input(True)
-            self.row_group_box_pump_03.disable_manual_input(True)
-            self.row_group_box_pump_04.disable_manual_input(True)
-            self.row_group_box_pump_05.disable_manual_input(True)
-            self.row_group_box_pump_06.disable_manual_input(True)
-            self.row_group_box_pump_07.disable_manual_input(True)
-            self.row_group_box_pump_08.disable_manual_input(True)
-            self.row_group_box_pump_09.disable_manual_input(True)
-            self.row_group_box_pump_10.disable_manual_input(True)
+            self.eValve_box.disable_manual_input(True)
+            self.read_box.disable_manual_input(True)
         else:
             self.btn_load_excel.setDisabled(True)
             self.btn_start.setDisabled(True)
             self.btn_stop.setDisabled(True)
-            self.row_group_box_pump_01.enable_manual_input(True)
-            self.row_group_box_pump_02.enable_manual_input(True)
-            self.row_group_box_pump_03.enable_manual_input(True)
-            self.row_group_box_pump_04.enable_manual_input(True)
-            self.row_group_box_pump_05.enable_manual_input(True)
-            self.row_group_box_pump_06.enable_manual_input(True)
-            self.row_group_box_pump_07.enable_manual_input(True)
-            self.row_group_box_pump_08.enable_manual_input(True)
-            self.row_group_box_pump_09.enable_manual_input(True)
-            self.row_group_box_pump_10.enable_manual_input(True)
+            self.eValve_box.enable_manual_input(True)
+            self.read_box.enable_manual_input(True)
 
-    def load_excel(self):
-        # Apri finestra dialogo per Excel
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, "Open Excel File", "", "Excel Files (*.xlsx *.xls)"
-        )
+    def load_excel(self, file_path=None):
+        if not file_path:
+            # Apri finestra dialogo per Excel
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, "Open Excel File", "", "Excel Files (*.xlsx *.xls)"
+            )
+        #print(file_path)
         try:
             self.test_sequence.load_from_file(file_path, verbose=True)
         except FileNotFoundError:
