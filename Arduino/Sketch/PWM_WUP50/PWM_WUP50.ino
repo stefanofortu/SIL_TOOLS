@@ -204,7 +204,7 @@ void loop() {
     {
       for (int i = 0; i < 10; i++) 
       {
-        digitalWrite(OUT_pins[i], HIGH);
+        digitalWrite(OUT_pins[i], LOW);
       }
       current_index_PWM = 0;
       current_waiting_time_PWM = PWM_duty_cycles_high_time_us_differential[0];
@@ -219,13 +219,13 @@ void loop() {
         //Serial.print("OUT_pins[PWM_duty_cycles_output_activation_order[current_index_PWM]] ");
         //Serial.println(OUT_pins[PWM_duty_cycles_output_activation_order[current_index_PWM]]);
         
-        digitalWrite(OUT_pins[PWM_duty_cycles_output_activation_order[current_index_PWM]], LOW);
+        digitalWrite(OUT_pins[PWM_duty_cycles_output_activation_order[current_index_PWM]], HIGH);
         current_waiting_time_PWM = PWM_duty_cycles_high_time_us_differential[current_index_PWM+1];
         current_index_PWM +=1;
       }else{
         if (current_index_PWM == 9)
         {
-          digitalWrite(OUT_pins[PWM_duty_cycles_output_activation_order[9]], LOW);
+          digitalWrite(OUT_pins[PWM_duty_cycles_output_activation_order[9]], HIGH);
           current_waiting_time_PWM = rest_time_PWM;
           current_index_PWM = -1;
           //for (int i = 0; i < 10; i++) 
@@ -359,12 +359,15 @@ void get_parameter_value_on_serial(String parameter_id_hex)
 void set_parameter_value_from_serial(String parameter_id_hex, String parameter_value_hex)
 {
   int parameter_ID_value = (int) strtol(parameter_id_hex.c_str(), NULL, 16);
+  /*
   Serial.print("set_parameter_value_from_serial(): parameter_ID_value: ");
   Serial.println(parameter_ID_value);
+  */
   int parameter_value_int = (int) strtol(parameter_value_hex.c_str(), NULL, 16);
+  /*
   Serial.print("set_parameter_value_from_serial(): parameter_value_int: ");
   Serial.println(parameter_value_int);
-
+  */
   if (17 <= parameter_ID_value && parameter_ID_value <= 26)
   {
     PWM_duty_cycles[parameter_ID_value-17] = parameter_value_int;
@@ -395,7 +398,7 @@ void print_status(){
 
 long get_last_pump_feedback(int pump_ID)
 {
-  return random(pump_ID*1000, (pump_ID+1)*1000);
+  return 500; //random(pump_ID*1000, (pump_ID+1)*1000);
 }
 
 String encode_data(){
@@ -465,45 +468,52 @@ void measure_IN_01_low_duration() {
 */
 void configure_duty_cycles_manual_PWM()
 {
+  /*
   Serial.print("default duty: ");
   Serial.print("PWM_duty_cycles ");
   for (int i = 0; i < 10; i++) 
   {
-    //Serial.print(i);
-    //Serial.print(":");
+    Serial.print(i);
+    Serial.print(":");
     Serial.print(PWM_duty_cycles[i]);
     Serial.print(" - ");
   }
   Serial.println("");
-
+  */
   for (int i = 0; i < 10; i++) 
   {
     PWM_duty_cycles_high_time_us[i] = (unsigned long) (PWM_period_us/100 * PWM_duty_cycles[i]) ;
   }
-
+  /*
   Serial.print("PWM_duty_cycles_high_time_us ");
   for (int i = 0; i < 10; i++) 
   {
-    //Serial.print(i);
-    //Serial.print(":");
+    Serial.print(i);
+    Serial.print(":");
     Serial.print(PWM_duty_cycles_high_time_us[i]);
     Serial.print(" - ");
   }
   Serial.println("");
-
+  */
   //rest_time_PWM = differenza tra periodo (Periodo * 1'000'000 us) e il max dutycycle - inteso PWM_duty_cycles_high_time_us
   int size_duty_cycle = sizeof(PWM_duty_cycles_high_time_us) / sizeof(PWM_duty_cycles_high_time_us[0]);
+  /*
   Serial.print("size_duty_cycle: ");
   Serial.print(size_duty_cycle);
   Serial.println("");
+  */
   unsigned long max_high_time = findMax(PWM_duty_cycles_high_time_us, size_duty_cycle);
+  /*
   Serial.print("max_high_time: ");
   Serial.print(max_high_time);
   Serial.println("");
+  */
   rest_time_PWM = PWM_period_us - max_high_time;
+  /*
   Serial.print("rest_time_PWM: ");
   Serial.print(rest_time_PWM);
   Serial.println("");
+  */
   // Inizializza orderedIndex con gli indici originali: 0,1,2,3,4
   for (int i = 0; i < 10; i++)
   {
@@ -524,7 +534,7 @@ void configure_duty_cycles_manual_PWM()
       }
     }
   }
-
+  /*
   Serial.print("PWM_duty_cycles_output_activation_order ");
   for (int i = 0; i < 10; i++) 
   {
@@ -532,13 +542,13 @@ void configure_duty_cycles_manual_PWM()
     Serial.print(" - ");
   }
   Serial.println("");
-
+  */
   for (int i = 0; i < 10; i++)
   {
     //here the time is not "differential", is the effective time, but ordered
     PWM_duty_cycles_high_time_us_differential[i] = PWM_duty_cycles_high_time_us[PWM_duty_cycles_output_activation_order[i]];
   }
-  
+  /*
   Serial.print("PWM_duty_cycles_high_time_us_ordered ");
   for (int i = 0; i < 10; i++) 
   {
@@ -546,12 +556,12 @@ void configure_duty_cycles_manual_PWM()
     Serial.print(" - ");
   }
   Serial.println("");
-  
+  */
   for (int i = 9; i > 0; i--)
   {
     PWM_duty_cycles_high_time_us_differential[i] = PWM_duty_cycles_high_time_us_differential[i] - PWM_duty_cycles_high_time_us_differential[i-1];
   }
-
+  /*
   Serial.print("PWM_duty_cycles_high_time_us_differential ");
   for (int i = 0; i < 10; i++) 
   {
@@ -559,6 +569,7 @@ void configure_duty_cycles_manual_PWM()
     Serial.print(" - ");
   }
   Serial.println("");
+  */
 }
 
 
