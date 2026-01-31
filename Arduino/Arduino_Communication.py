@@ -14,21 +14,34 @@ Example --> '0:1:1:0'
 ## MESSAGE TYPE '0'
 The purpose of this message is to verify that the connection is ok
 There are no parameters to be added
-- Signature     '0' 
-- Example       '0 
+- Message Signature     '0' 
+- Message Example       '0 
 Arduino must reply with 'Arduino_COM_OK' value
-- Signature     '0:parameter'
-- Example       '0:Arduino_COM_OK'
+- Reply Signature      '0:parameter'
+- Reply example        '0:Arduino_COM_OK'
 
 ## MESSAGE TYPE '1'
 The purpose of this message is to get the Arduino application name
 There are no parameters to be added
-- Signature     '1' 
-- Example       '1 
+- Message Signature     '1' 
+- Message Example       '1 
 Arduino must reply with the name of the application. 
-Possible values are "PWM", "PERF_CURVE"
-- Signature     '1:parameter'
-- Example       '1:PWM'
+Possible values are "PWM_MANUAL", "PERF_CURVE", "PWM_PARAMETER_BY_INPUT", "M03"
+- Reply Signature     '1:parameter'
+- Reply Example       '1:PWM'
+'''
+
+''' DOCS for Application "MANUAL"
+Applicazione che attiva le seguenti uscite:
+1. 6 PWM output 
+'''
+
+''' DOCS for Application "PWM_PARAMETER_BY_INPUT"
+Applicazione che attiva i 6 output PWM a seconda degli input che arrivano. 
+'''
+
+''' DOCS for Application "M03"
+Applicazione che attiva i 6 output PWM a seconda delle logiche del test M03 
 '''
 ## MESSAGE TYPE '2'
 #The purpose of this message is to get the status of the all the arduino output
@@ -40,9 +53,7 @@ Possible values are "PWM", "PERF_CURVE"
 #- Example       '2:0:F:A:B4"
 #--> !!!this makes no sense: perform iteration on single parameters instead!!!!
 
-#### DOCS for application "PWM"
-#The parameters returned are the duty cycle of all the output, from 0 to 10 (parameters ID from 1 to 10)
-#--> !!!this makes no sense: perform iteration on single parameters instead!!!!
+
 '''
 ## MESSAGE TYPE '3': READ SINGLE PARAMETER 
 The purpose of this message is to READ a SINGLE parameters into the Arduino. All values must be in HEX format.
