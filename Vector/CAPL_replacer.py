@@ -6,8 +6,8 @@ def replace_CAPL(file_path):
 
     if "TMM1_VCU_rev" in file_path:
         TMM2_file_path = file_path.replace("/TMM1/TMM1_VCU_rev", "/TMM2/TMM2_VCU_rev")
-        TMM3_file_path = file_path.replace("/TMM1/TMM1_VCU_rev", "/TMM3/TMM2_VCU_rev")
-        TMM4_file_path = file_path.replace("/TMM1/TMM1_VCU_rev", "/TMM4/TMM2_VCU_rev")
+        TMM3_file_path = file_path.replace("/TMM1/TMM1_VCU_rev", "/TMM3/TMM3_VCU_rev")
+        TMM4_file_path = file_path.replace("/TMM1/TMM1_VCU_rev", "/TMM4/TMM4_VCU_rev")
     else:
         print("input TMM1_VCU_rev is wrong formatted")
         exit()
