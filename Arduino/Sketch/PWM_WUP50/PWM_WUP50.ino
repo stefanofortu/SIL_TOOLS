@@ -3,6 +3,8 @@
 #define FEEDBACK_PARAMETER_ID_OFFSET 32
 // Parameter test
 #define PARAMETER_TEST_STEP_DURATION 30 //seconds
+#define PARAMETER_SHORT_TEST_STEP_DURATION 10 //seconds
+
 // M03 test
 #define M03_START_DURATION 15000 //milliseconds
 #define M03_OPERATION_MIN_DURATION 900000 //milliseconds
@@ -221,17 +223,17 @@ void loop()
     if (millis() - parameter_test_time >= 1000) //run once each second
     {
       current_index_PWM += 1;
-      /*
+      
       for (int i = 0; i < IN_ENABLE_number; i++)
       {
         //PWM_duty_cycles[i]=10*current_index_PWM;
-        //do_parameter_sequence(i);
-        exec_test_sequence(i, "operation_max");
+        do_parameter_sequence_short(i);
+        //exec_test_sequence(i, "operation_max");
       } 
       configure_duty_cycles_timer_PWM(true);
-      */
+      
     
-      exec_M03_sequence();
+      //exec_M03_sequence();
       parameter_test_time = millis();
     }
 
@@ -269,6 +271,28 @@ void do_parameter_sequence(int pump_index)
   if (  (PARAMETER_TEST_STEP_DURATION*3 < parameter_counter[pump_index]) && (parameter_counter[pump_index] <=  PARAMETER_TEST_STEP_DURATION*4)  ) { PWM_duty_cycles[pump_index]=85; }
   if (  (PARAMETER_TEST_STEP_DURATION*4 < parameter_counter[pump_index]) && (parameter_counter[pump_index] <=  PARAMETER_TEST_STEP_DURATION*5)  ) { PWM_duty_cycles[pump_index]=95; }
   if (  (PARAMETER_TEST_STEP_DURATION*5 < parameter_counter[pump_index])                                                                        ) { PWM_duty_cycles[pump_index]=10; }      
+}
+
+void do_parameter_sequence_short(int pump_index)
+{
+  int enable_state = digitalRead(IN_pins[pump_index]);
+  unsigned long currentTime = millis();
+  unsigned long start_time = enable_start_time[pump_index];
+
+  // ---- Detect button press (rising edge) ----
+  if (enable_state == LOW)
+  {
+    parameter_counter[pump_index] +=1;
+  }else{
+    parameter_counter[pump_index] = 0;
+  }
+// ---- Set PWM according to time elapsed ----
+  if (  (PARAMETER_SHORT_TEST_STEP_DURATION*0 == parameter_counter[pump_index])                                                                       ) { PWM_duty_cycles[pump_index]=10; }      
+  if (  (PARAMETER_SHORT_TEST_STEP_DURATION*0 < parameter_counter[pump_index]) && (parameter_counter[pump_index] <=  PARAMETER_SHORT_TEST_STEP_DURATION*1)  ) { PWM_duty_cycles[pump_index]=50; }
+  if (  (PARAMETER_SHORT_TEST_STEP_DURATION*1 < parameter_counter[pump_index]) && (parameter_counter[pump_index] <=  PARAMETER_SHORT_TEST_STEP_DURATION*2)  ) { PWM_duty_cycles[pump_index]=75; }
+  if (  (PARAMETER_SHORT_TEST_STEP_DURATION*2 < parameter_counter[pump_index]) && (parameter_counter[pump_index] <=  PARAMETER_SHORT_TEST_STEP_DURATION*3)  ) { PWM_duty_cycles[pump_index]=95; }
+  if (  (PARAMETER_SHORT_TEST_STEP_DURATION*3 < parameter_counter[pump_index])                                                                        ) { PWM_duty_cycles[pump_index]=10; }      
+
 }
 
 void exec_test_sequence(int pump_index, String test_type)
