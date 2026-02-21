@@ -68,10 +68,10 @@ class Eurotherm_to_MDF:
                     # Check if the line starts with "n°Campione"
                     #print(line.lower())
                     if line.startswith('"Nome Gruppo"'):
-                        key, value = [part.strip('"') for part in line.split('\t')]
+                        key, value = [part.strip('"') for part in line.split(';')]
                         parsed = {key: value}
                         #print(parsed)
-                        nome_gruppo = parsed["Nome Gruppo"].replace('\t', '').replace('"', '').replace(' ', '_').strip()
+                        nome_gruppo = parsed["Nome Gruppo"].replace(';', '').replace('"', '').replace(' ', '_').strip()
                         nome_gruppo_list.append(nome_gruppo)
 
                     if line.lower().startswith('"date/ora"'):
@@ -111,7 +111,7 @@ class Eurotherm_to_MDF:
 
 
             #### READ CSV FILE
-            df = pd.read_csv(input_file_path, sep="\t",
+            df = pd.read_csv(input_file_path, sep=";",
                              skiprows=ignore_list,
                              decimal=",",
                              # nrows=10,
@@ -133,12 +133,12 @@ class Eurotherm_to_MDF:
             #print(df.head(10))
 
             df = df.rename(columns={"Date/Ora": "Data_Ora"})
-            #print(df.head(2))
+            print(df.head(10))
 
             # Inserimento di una colonna "time" con valori in 'datetime'
             #df.insert(1, 'time', pd.to_datetime(df[df.columns["Data_Ora"]],format="%d.%m.%Y %H:%M:%S,%f"))
 
-            df.insert(1, "Time",  pd.to_datetime(df["Data_Ora"], format="%d/%m/%y %H:%M:%S"))
+            df.insert(1, "Time",  pd.to_datetime(df["Data_Ora"], dayfirst=True) )#format="%d/%m/%y %H:%M:%S.%f"))
 
             start_time = df['Time'].iloc[0]
             # print(df.head(10))
