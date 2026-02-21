@@ -10,6 +10,12 @@ class Configuration_Data:  # CHANGE NAME TO FILE
     def __init__(self):
         self.configuration_file_name = FILE_NAME_DEFAULT
         print("sistema le variabili in questo file di configurazione")
+        ############# TAB CONFIGURATION ####################
+        self.tab_mdf_conversion = True
+        self.tab_mdf_elaboration = True
+        self.tab_csv_conversion = True
+        self.tab_arduino = False
+        self.tab_curve = False
         ####################### CSV CONVERTION #######################
         self.mdf_conversion_input_file_list = []
         self.mdf_conversion_output_file_path = ""   ###########DA ELIMINARE
@@ -46,6 +52,22 @@ class Configuration_Data:  # CHANGE NAME TO FILE
 
                 if isinstance(cfg_data_dict, dict):
                     try:
+                        ############# TAB CONFIGURATION ####################
+                        self.tab_mdf_conversion = self.get_parameter_from_file(cfg_data=cfg_data_dict,
+                                                                                   label="tab_mdf_conversion",
+                                                                                   expected_type=bool)
+                        self.tab_mdf_elaboration = self.get_parameter_from_file(cfg_data=cfg_data_dict,
+                                                                                   label="tab_mdf_elaboration",
+                                                                                   expected_type=bool)
+                        self.tab_csv_conversion = self.get_parameter_from_file(cfg_data=cfg_data_dict,
+                                                                                   label="tab_csv_conversion",
+                                                                                   expected_type=bool)
+                        self.tab_arduino = self.get_parameter_from_file(cfg_data=cfg_data_dict,
+                                                                                   label="tab_arduino",
+                                                                                   expected_type=bool)
+                        self.tab_curve = self.get_parameter_from_file(cfg_data=cfg_data_dict,
+                                                                                   label="tab_curve",
+                                                                                   expected_type=bool)
                         ############# TAB MDF CONVERTION ####################
                         self.mdf_conversion_input_file_list = cfg_data_dict['mdf_conversion_input_file_list']
                         if not isinstance(self.mdf_conversion_input_file_list, list):
@@ -95,10 +117,6 @@ class Configuration_Data:  # CHANGE NAME TO FILE
                         ############# CSV CONVERTION ####################
                         self.csv_conversion_input_file_combobox = cfg_data_dict['csv_conversion_input_file_combobox']
                         self.csv_conversion_input_file_list = cfg_data_dict['csv_conversion_input_file_list']
-                        ############# VECTOR GENERATOR ####################
-                        self.vector_generator_ldf_file = cfg_data_dict["Vector_generator_LDF_file"]
-                        self.vector_generator_capl_vcu_file = cfg_data_dict["Vector_generator_CAPL_VCU_file"]
-                        self.vector_generator_capl_valve_file = cfg_data_dict["Vector_generator_CAPL_VALVE_file"]
                     except KeyError:
                         print('Field in Conversion_to_MDF wrongly formatted')
                         sys.exit()
@@ -110,6 +128,14 @@ class Configuration_Data:  # CHANGE NAME TO FILE
             print('File self.configuration_file_name does not exist')
             self.save_cfg_data_to_file(filename_default=True, select_new_file=False)
 
+    @staticmethod
+    def get_parameter_from_file(cfg_data, label, expected_type):
+        if isinstance(cfg_data[label], bool):
+            return cfg_data[label]
+        else:
+            print(f"Error: get_parameter_from_file. {label} does not have type {expected_type.__name__}")
+            return None
+
     def save_cfg_data_to_file(self, filename_default=False, select_new_file=False):
         configuration_file_data = {
             "root": {
@@ -117,10 +143,17 @@ class Configuration_Data:  # CHANGE NAME TO FILE
             }
         }
         configuration_file_data['root']['SIL_CFG_DATA'] = dict({
+            ############# TAB CONFIGURATION ####################
+            "tab_mdf_conversion": self.tab_mdf_conversion,
+            "tab_mdf_elaboration": self.tab_mdf_elaboration,
+            "tab_csv_conversion": self.tab_csv_conversion,
+            "tab_arduino": self.tab_arduino,
+            "tab_curve" : self.tab_curve,
             ############# TAB MDF ELABORATION ####################
             "mdf_conversion_input_file_list":  self.mdf_conversion_input_file_list,
-            "mdf_conversion_output_file": self.mdf_conversion_output_file_path,
-            ############# TAB MDF ELABORATION ####################
+            #"mdf_conversion_input_file_list": self.mdf_conversion_input_file_list,
+            ############# TAB MDF ELABORATIO ####################
+
             "mdf_elaboration_insert_read_by_value_delay": self.mdf_elaboration_insert_read_by_value_delay,
             "mdf_elaboration_insert_read_by_value_waiting": self.mdf_elaboration_insert_read_by_value_waiting,
             "mdf_elaboration_insert_read_by_value_time": self.mdf_elaboration_insert_read_by_value_time,

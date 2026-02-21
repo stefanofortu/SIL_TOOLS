@@ -3,7 +3,7 @@ import os.path
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QFrame, QGridLayout, \
-    QFileDialog, QComboBox
+    QFileDialog, QComboBox, QSizePolicy, QScrollArea
 from pandas import to_timedelta
 
 from Converters.CSV_to_MDF_Handler import CSV_to_MDF_Handler
@@ -64,11 +64,26 @@ class MDF_Creator_Widget(QWidget):
         input_file_description_label.setAlignment(Qt.AlignLeft)
         input_file_layout.addWidget(input_file_description_label, 0, 0)
         #
+
         self.input_file_path_label = QLabel(self)
-        self.input_file_path_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
-        self.input_file_path_label.setText("-")
-        self.input_file_path_label.setAlignment(Qt.AlignLeft)
-        input_file_layout.addWidget(self.input_file_path_label, 1, 0, 1, 8)
+        #self.input_file_path_label.setFrameStyle(QFrame.Panel | QFrame.Sunken)
+        self.input_file_path_label.setText("ciao\nciao\nciao\n")
+
+        self.input_file_path_label.setWordWrap(True)
+        self.input_file_path_label.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        #self.input_file_path_label.setMaximumHeight(300)
+        self.input_file_path_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        self.input_file_path_label.setMaximumHeight(self.input_file_path_label.sizeHint().height())
+
+        scroll = QScrollArea()
+        scroll.setWidget(self.input_file_path_label)
+        scroll.setWidgetResizable(True)
+        scroll.setMaximumHeight(300)
+        #scroll.setFixedHeight(300)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+        input_file_layout.addWidget(scroll, 1, 0)
         #
         btn_input_file_selector = QPushButton("Add ")
         btn_input_file_selector.setIcon(QIcon(resource_path("folder-icon.jpg")))
@@ -140,6 +155,8 @@ class MDF_Creator_Widget(QWidget):
         self.cfg_data.load_cfg_data_from_file()
 
         self.input_file_path_label.setText('<br>'.join(self.cfg_data.mdf_conversion_input_file_list))
+        self.input_file_path_label.setMaximumHeight(self.input_file_path_label.sizeHint().height())
+
         # self.output_file_path_label.setText(self.cfg_data.mdf_conversion_output_file_path)
 
         #self.csv_to_mdf_handler = CSV_to_MDF_Handler()
@@ -216,6 +233,7 @@ class MDF_Creator_Widget(QWidget):
         else:
             self.cfg_data.mdf_conversion_input_file_list = fileNameList
             self.input_file_path_label.setText("<br>".join(self.cfg_data.mdf_conversion_input_file_list))
+            self.input_file_path_label.setMaximumHeight(self.input_file_path_label.sizeHint().height())
             self.cfg_data.save_cfg_data_to_file()
 
     def open_mdf_input_file_dialog(self):
@@ -232,6 +250,7 @@ class MDF_Creator_Widget(QWidget):
         if filename:
             self.cfg_data.mdf_export_input_file_path = filename
             self.input_mdf_file_path_label.setText(self.cfg_data.mdf_export_input_file_path)
+
             self.cfg_data.save_cfg_data_to_file()
 
     def save_file_dialog(self):

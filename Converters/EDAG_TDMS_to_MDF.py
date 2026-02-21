@@ -16,7 +16,7 @@ class EDAG_TDMS_to_MDF:
 
         for input_file in input_file_list:
             # Carica il file TDMS
-            print("input_file ", input_file)
+            # print("input_file ", input_file)
             tdms_file = TdmsFile.read(input_file)
 
             # Crea un DataFrame combinando tutti i gruppi e canali
@@ -30,13 +30,15 @@ class EDAG_TDMS_to_MDF:
             TDMS_log_freq_used = None
             TDMS_number_of_sample: int = None
             TDMS_real_number_of_sample: int = None
-            print(tdms_file.properties)
+            if verbose:
+                print(tdms_file.properties)
             # Itera su ogni gruppo e canale nel file TDMS
             for group in tdms_file.groups():
-                print(f"Reading {group.name} data...")  # Prints "group name"
-                # print("group.properties : ", group.properties, flush=True)
+                if verbose:
+                    print(f"Reading {group.name} data...")  # Prints "group name"
+                    print("group.properties : ", group.properties, flush=True)
                 for channel in group.channels():
-                    # print("channel.properties : ", channel.properties, flush=True)
+                    print("channel.properties : ", channel.properties, flush=True)
                     channel = channel
                     if group.name != "DateTime":
                         # do a lot of additional checks, per tutti i canali tranne che DateTime
@@ -64,7 +66,7 @@ class EDAG_TDMS_to_MDF:
                         ch_name = "DateTime"
                     else:
                         ch_name = channel.name
-                    # print(f" The shape of the channel {ch_name} is {df_channel.shape[0]}")
+                    print(f" The shape of the channel {ch_name} is {df_channel.shape[0]}")
                     channel_to_keep = True
                     # a causa di un baco nel timeframe di EDAG, wf_samples è sempre settato a 1
                     if first_samples_extracted:
@@ -89,7 +91,13 @@ class EDAG_TDMS_to_MDF:
                     if group.name == "DateTime":
                         df_channel.columns = ["DateTime"]
                     else:
-                        unit_string = channel.properties['unit_string']
+                        try:
+                            unit_string = channel.properties['unit_string']
+                        except KeyError:
+                            try:
+                                unit_string = channel.properties['Einheit']
+                            except KeyError:
+                                raise KeyError("Neither 'unit_string' nor 'Einheit' found")
                         df_channel.columns = [
                             f"{group.name}_{channel.name}[{unit_string}]"]
 
@@ -111,18 +119,17 @@ class EDAG_TDMS_to_MDF:
             # print(df_reduced.head(5))
             # df_reduced.to_csv("df_reduced.csv")
 
-            # if "DateTime" in final_df.columns:
-            #    final_df.drop(columns=["DateTime"], inplace=True)
-            final_df['year'] = final_df['DateTime'].dt.year
-            final_df['month'] = final_df['DateTime'].dt.month
-            final_df['day'] = final_df['DateTime'].dt.day
-            final_df['hours'] = final_df['DateTime'].dt.hour
-            final_df['minutes'] = final_df['DateTime'].dt.minute
-            final_df['seconds'] = final_df['DateTime'].dt.second
+            if "DateTime" in final_df.columns:
+                final_df.drop(columns=["DateTime"], inplace=True)
+                final_df['year'] = final_df['DateTime'].dt.year
+                final_df['month'] = final_df['DateTime'].dt.month
+                final_df['day'] = final_df['DateTime'].dt.day
+                final_df['hours'] = final_df['DateTime'].dt.hour
+                final_df['minutes'] = final_df['DateTime'].dt.minute
+                final_df['seconds'] = final_df['DateTime'].dt.second
             # Compute relative time (timedelta) from the first sample
-
-
-            final_df['relative_seconds'] = (final_df['DateTime'] - final_df['DateTime'].iloc[0]).dt.total_seconds()
+            if "DateTime" in final_df.columns:
+                final_df['relative_seconds'] = (final_df['DateTime'] - final_df['DateTime'].iloc[0]).dt.total_seconds()
 
             # Convert timedelta64 to seconds
             #timestamps = final_df['relative_time'] / np.timedelta64(1, 's')
@@ -141,7 +148,11 @@ class EDAG_TDMS_to_MDF:
                 print(f"TDMS_duration: ", TDMS_duration)
 
             timestamps = np.arange(start=0, stop=TDMS_duration, step=TDMS_increment)
-            timestamps = np.array(final_df['relative_seconds'])
+            if "DateTime" in final_df.columns:
+                timestamps = np.array(final_df['relative_seconds'])
+            else:
+                timestamps = np.arange(start=0, stop=TDMS_duration, step=TDMS_increment)
+
             if len(timestamps) != TDMS_real_number_of_sample:
                 print(
                     f" WARNING : TDMS_number_of_sample ({TDMS_number_of_sample}) != does not match with TDMS_increment ({TDMS_increment})")
