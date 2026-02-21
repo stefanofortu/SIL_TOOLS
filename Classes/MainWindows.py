@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QAction
-from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatusBar, QVBoxLayout
+from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QToolBar, QStatusBar, QVBoxLayout, QTextBrowser, \
+    QHBoxLayout, QPushButton
 
 from Classes.Configuration_Data import Configuration_Data
 from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget

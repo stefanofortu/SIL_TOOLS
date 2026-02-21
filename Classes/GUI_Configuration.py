@@ -5,7 +5,7 @@ from Converters.EDAG_TDMS_to_MDF import EDAG_TDMS_to_MDF
 from Converters.Vector_to_MDF import Vector_to_MDF
 from Converters.Eurotherm_to_MDF import Eurotherm_to_MDF
 from Converters.Eurotherm_exported_to_MDF import Eurotherm_exported_to_MDF
-from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
+#from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
 
 ############################# MDF CONVERSION ####################################################
 
