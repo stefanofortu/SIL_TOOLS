@@ -7,6 +7,7 @@ from Converters.Eurotherm_to_MDF import Eurotherm_to_MDF
 from Converters.Eurotherm_exported_to_MDF import Eurotherm_exported_to_MDF
 from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
 from Converters.FRF_analysis import FRF_analysis
+#from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
 
 ############################# MDF CONVERSION ####################################################
 

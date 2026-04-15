@@ -11,6 +11,7 @@ from Classes.QTextEditLogger import QTextEditLogger
 from Classes.MDF_Creator_Widget import MDF_Creator_Widget
 from Classes.MDF_Elaboration_Widget import MDF_Elaboration_Widget
 from Classes.CSV_Creator_Widget import CSV_Creator_Widget
+from Vector.VectorFileGenerator import VectorFileGenerator
 
 from icons.resources import resource_path
 import logging, os
@@ -35,6 +36,8 @@ class MainWindow(QMainWindow):
         self.csv_to_mdf_widget = CSV_Creator_Widget(self.configuration_data)
         self.mdf_elaboration_widget = MDF_Elaboration_Widget(self.configuration_data)
         self.pwm_reader_widget = Pwm_Reader_Widget()
+        self.vector_file_generator = VectorFileGenerator(self.configuration_data)
+
         #self.setStyleSheet("background-color: rgb(255, 255, 255)")
 
         toolbar_action_new = QAction(QIcon(resource_path("new_configuration.png")), "New", self)
@@ -86,8 +89,12 @@ class MainWindow(QMainWindow):
             tab_widget.insertTab(2, self.csv_creator_widget, "CSV Creator")
         if self.configuration_data.tab_arduino:
             tab_widget.insertTab(3, self.pwm_reader_widget, "Arduino set Conversions")
+        tab_widget.insertTab(4, self.vector_file_generator, "Vector File Generator")
 
-        ##### Set main layout
+        #logTextBox = QTextEditLogger(self)
+        #logging.getLogger().addHandler(logTextBox)
+
+        # Set main layout
         main_layout = QVBoxLayout()
         main_layout.addWidget(tab_widget)
         #main_layout.addWidget(logTextBox.widget)
@@ -124,7 +131,6 @@ class MainWindow(QMainWindow):
 
     def open_configuration_file(self):
         try:
-            logger.warning("Ciao")
             print("to be replaced")
             #hil_function_file_data, tc_highlight_data, tc_substitution_data = self.configuration_file.open()
             #self.tc_substitution_widget.update_handler(tc_substitution_data)

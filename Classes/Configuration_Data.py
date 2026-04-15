@@ -1,8 +1,7 @@
 import json
 import sys
 
-from PySide6.QtWidgets import QFileDialog
-from Classes.GUI_Configuration import GUI_mdf_converstion_selection_list
+from PySide6.QtWidgets import QWidget, QFileDialog
 
 FILE_NAME_DEFAULT = "SIL_config_data.json"
 
@@ -32,6 +31,10 @@ class Configuration_Data:  # CHANGE NAME TO FILE
         ####################### CSV CONVERTION #######################
         self.csv_conversion_input_file_combobox = ""
         self.csv_conversion_input_file_list = ""
+        ############# VECTOR GENERATOR ####################
+        self.vector_generator_ldf_file = ""
+        self.vector_generator_capl_vcu_file = ""
+        self.vector_generator_capl_valve_file = ""
         ####################### LOAD CFG #######################ì
         self.load_cfg_data_from_file()
 
@@ -70,6 +73,9 @@ class Configuration_Data:  # CHANGE NAME TO FILE
                         if not isinstance(self.mdf_conversion_input_file_list, list):
                             print("Error: load_cfg_data_from_file. Wrong type of self.mdf_conversion_input_file_list :",
                                   type(self.mdf_conversion_input_file_list))
+
+                        #output_file = cfg_data_dict['mdf_conversion_output_file']
+                        #self.mdf_conversion_output_file_path = output_file['path']
 
                         ############# TAB MDF ELABORATION ####################
                         #
@@ -119,7 +125,7 @@ class Configuration_Data:  # CHANGE NAME TO FILE
                     sys.exit()
 
         except FileNotFoundError:
-            print(f'File {self.configuration_file_name} does not exist')
+            print('File self.configuration_file_name does not exist')
             self.save_cfg_data_to_file(filename_default=True, select_new_file=False)
 
     @staticmethod
@@ -157,7 +163,11 @@ class Configuration_Data:  # CHANGE NAME TO FILE
             "mdf_elaboration_output_file": self.mdf_elaboration_output_file_path,
             ############# CSV CONVERTION ####################
             "csv_conversion_input_file_combobox": self.csv_conversion_input_file_combobox,
-            "csv_conversion_input_file_list": self.csv_conversion_input_file_list
+            "csv_conversion_input_file_list": self.csv_conversion_input_file_list,
+            ############# VECTOR GENERATOR ####################
+            "Vector_generator_LDF_file": self.vector_generator_ldf_file,
+            "Vector_generator_CAPL_VCU_file": self.vector_generator_capl_vcu_file,
+            "Vector_generator_CAPL_VALVE_file": self.vector_generator_capl_valve_file
         }
         )
 
