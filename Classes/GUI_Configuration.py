@@ -6,19 +6,20 @@ from Converters.Vector_to_MDF import Vector_to_MDF
 from Converters.Eurotherm_to_MDF import Eurotherm_to_MDF
 from Converters.Eurotherm_exported_to_MDF import Eurotherm_exported_to_MDF
 from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
+from Converters.FRF_analysis import FRF_analysis
 
 ############################# MDF CONVERSION ####################################################
 
 GUI_mdf_converstion_selection_list = ["EDAG(.txt)", "EDAG(.tdms)", "Bertrandt", "PumpLogger", "Dielectrik", "Vector",
                                  "Eurotherm CSV Export Data", "Eurotherm CSV Logged Data",
-                                 "TDMS [banco EN4]", "Dewesoft", "LIN_Trace"]
+                                 "TDMS [banco EN4]", "Dewesoft", "LIN_Trace", "FRF"]
 
 
 def select_filter_for_file(current_text):
     # append to this list
     possible_filters = ["Text Files (*.txt)", "CSV Files (*.csv)", "Python Files (*.py)",
                         "PumpLogger_data (*.data)", "MDF file (*.mf4)", "TMDS file (*.tdms)",
-                        "Dewesoft Data (*.dxd)", "LIN trace (*.ltrc)", "All Files (*)"]
+                        "Dewesoft Data (*.dxd)", "LIN trace (*.ltrc)", "EXCEL trace (*.xlsx)", "All Files (*)"]
 
     if current_text == "EDAG(.txt)":
         selected_filter = possible_filters[0]  # .txt
@@ -42,6 +43,8 @@ def select_filter_for_file(current_text):
         selected_filter = possible_filters[6]  # .dxd
     elif current_text == "LIN_Trace":
         selected_filter = possible_filters[7]  # .dxd
+    elif current_text == "FRF":
+        selected_filter = possible_filters[8]  # .dxd
     else:
         print("Pre-defined file extension not present")
         selected_filter = possible_filters[1]
@@ -100,6 +103,10 @@ def select_and_start_conversion(selected_text, input_file_list, use_same_input_f
 
     elif selected_text == "LIN_Trace":
         PeakLIN_to_MDF.exec_conversion(input_file_list=input_file_list,
+                                        use_same_input_file_name=use_same_input_file_name,
+                                        output_file_name=output_file_name)
+    elif selected_text == "FRF":
+        FRF_analysis.exec_conversion(input_file_list=input_file_list,
                                         use_same_input_file_name=use_same_input_file_name,
                                         output_file_name=output_file_name)
 
