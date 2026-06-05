@@ -8,3 +8,4 @@ build/
 dist/
 SIL_config_data.json
 *.pyc
+SIL_TOOLS_Log.log
