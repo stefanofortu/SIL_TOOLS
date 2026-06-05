@@ -24,20 +24,23 @@ if __name__ == '__main__':
 
     #sys.argv += ['-platform', 'windows:darkmode=1']
     app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+
+
 
     ## use default style of the pyside
     #app.setStyle("Fusion")
     ### style the application; use qdarkstyle or QSS
-    use_qss_stylesheets = False
+    use_qss_stylesheets = True
     if use_qss_stylesheets:
-        qss_path = "themes/ConsoleStyle.qss"
+        qss_path = "themes/ElegantDark.qss"
         if os.path.exists(qss_path):
             with open(qss_path, "r") as f:
                 app.setStyleSheet(f.read())
     else:
         # use qdarkstyle library
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyside6'))
+        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='PySide6'))
+        pass
 
-    main_window = MainWindow()
-    main_window.show()
     sys.exit(app.exec())

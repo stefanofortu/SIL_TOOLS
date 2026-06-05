@@ -8,13 +8,12 @@ from Converters.Eurotherm_exported_to_MDF import Eurotherm_exported_to_MDF
 from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
 from Converters.FRF_analysis import FRF_analysis
 #from Converters.PeakLIN_to_MDF import PeakLIN_to_MDF
-
+from Converters.CSV_connector_test_Handler import CSV_connector_test_Handler
 ############################# MDF CONVERSION ####################################################
 
 GUI_mdf_converstion_selection_list = ["EDAG(.txt)", "EDAG(.tdms)", "Bertrandt", "PumpLogger", "Dielectrik", "Vector",
                                  "Eurotherm CSV Export Data", "Eurotherm CSV Logged Data",
-                                 "TDMS [banco EN4]", "Dewesoft", "LIN_Trace", "FRF"]
-
+                                 "TDMS [banco EN4]", "Dewesoft", "LIN_Trace", "FRF", "Connector_test"]
 
 def select_filter_for_file(current_text):
     # append to this list
@@ -45,7 +44,9 @@ def select_filter_for_file(current_text):
     elif current_text == "LIN_Trace":
         selected_filter = possible_filters[7]  # .dxd
     elif current_text == "FRF":
-        selected_filter = possible_filters[8]  # .dxd
+        selected_filter = possible_filters[8]  # .csv
+    elif current_text == "Connector_test":
+        selected_filter = possible_filters[1]  # .dxd
     else:
         print("Pre-defined file extension not present")
         selected_filter = possible_filters[1]
@@ -84,7 +85,7 @@ def select_and_start_conversion(selected_text, input_file_list, use_same_input_f
                                       output_file_name=cfg_data.mdf_conversion_output_file_path)
 
     elif selected_text == "Eurotherm CSV Export Data":
-        Eurotherm_exported_to_MDF.exec_conversion(input_file_path=input_file_path,
+        Eurotherm_exported_to_MDF.exec_conversion(input_file_list=input_file_list,
                                          use_same_input_file_name=use_same_input_file_name,
                                          output_file_name=output_file_name)
 
@@ -101,7 +102,6 @@ def select_and_start_conversion(selected_text, input_file_list, use_same_input_f
         Dewesoft_to_MDF.exec_conversion(input_file_list=input_file_list,
                                         use_same_input_file_name=use_same_input_file_name,
                                         output_file_name=output_file_name)
-
     elif selected_text == "LIN_Trace":
         PeakLIN_to_MDF.exec_conversion(input_file_list=input_file_list,
                                         use_same_input_file_name=use_same_input_file_name,
@@ -110,7 +110,10 @@ def select_and_start_conversion(selected_text, input_file_list, use_same_input_f
         FRF_analysis.exec_conversion(input_file_list=input_file_list,
                                         use_same_input_file_name=use_same_input_file_name,
                                         output_file_name=output_file_name)
-
+    elif selected_text == "Connector_test":
+        CSV_connector_test_Handler.exec_conversion(input_file_list=input_file_list,
+                                           use_same_input_file_name=use_same_input_file_name,
+                                           output_file_name=output_file_name)
     else:
         print(f"Wrong selection in selection_comboBox: {selected_text}")
 

@@ -240,23 +240,25 @@ class Eurotherm_exported_to_MDF:
     # START CONFIGURATION
     # -------------------
     @staticmethod
-    def exec_conversion(input_file_path, use_same_input_file_name, output_file_name):
+    def exec_conversion(input_file_list, use_same_input_file_name, output_file_name):
         path = "C:\\Users\\stefano.fortunati\\Documents\\_LAVORO\\Schaeffler\\PXL_EDAG\\"
 
         # FILENAME SENZA ESTENSIONE !!!
         filename = "19.08.2024_Schaeffler1_L012"
         #df = pd.read_csv(path + filename + ".txt", sep="\t", encoding="latin1")
-        print(input_file_path)
-        df = pd.read_csv(input_file_path, sep="\t", encoding="latin1")
+        print(input_file_list)
+        filename = input_file_list[0]
+        print(filename)
+        df = pd.read_csv(filename, sep="\t", encoding="latin1", decimal=",")
 
         # -------------------
         # END CONFIGURATION
         # -------------------
 
         # Inserimento di una colonna "time" con valori in 'datetime'
-        df.insert(1, 'time', pd.to_datetime(df[df.columns[0]],format="%d.%m.%Y %H:%M:%S,%f"))
+        df.insert(1, 'time', pd.to_datetime(df[df.columns[0]], format="%d/%m/%y %H:%M:%S"))
         start_time = df['time'].iloc[0]
-
+        print(start_time)
         # Inserimento di una colonna "relative_time" con valori in 'datetime'
         df.insert(2, 'relative_time', df['time'] - start_time)
 
@@ -298,9 +300,10 @@ class Eurotherm_exported_to_MDF:
         #############
         ## STEP2 : creare asse dei tempi
         #############
-        timestamps = np.array(df["relative_time"].apply(lambda x: x.seconds))
-
-
+        timestamps = np.array(df["relative_time"].apply(lambda x: x.total_seconds()))
+        df.to_csv("temp.csv")
+        print(df.head(10))
+        print(timestamps)
         #############
         ## STEP2 : creare i segnali effettivi dal dataframe
         #############
@@ -320,7 +323,7 @@ class Eurotherm_exported_to_MDF:
             mdf4.start_time = start_time.to_pydatetime()  # datetime.fromisoformat("2024-08-06 17:00:00")
             # save new file
             if use_same_input_file_name == True:
-                out_filename = input_file_path[:-4] + ".mf4"
+                out_filename = filename[:-4] + ".mf4"
             else:
                 out_filename = output_file_name
                 mdf4.save(path + filename + ".mf4", overwrite=True)
