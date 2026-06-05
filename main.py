@@ -32,7 +32,7 @@ if __name__ == '__main__':
     ## use default style of the pyside
     #app.setStyle("Fusion")
     ### style the application; use qdarkstyle or QSS
-    use_qss_stylesheets = True
+    use_qss_stylesheets = False
     if use_qss_stylesheets:
         qss_path = "themes/ElegantDark.qss"
         if os.path.exists(qss_path):
@@ -40,7 +40,7 @@ if __name__ == '__main__':
                 app.setStyleSheet(f.read())
     else:
         # use qdarkstyle library
-        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='PySide6'))
+        app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt5'))
         pass
 
     sys.exit(app.exec())
