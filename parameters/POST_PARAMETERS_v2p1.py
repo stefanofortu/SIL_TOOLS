@@ -160,9 +160,12 @@ def post_parameter():
        time_delta = timedelta(seconds=1)
        if "Delta P - P2" in df_tmp.columns or "Delta P - P1" in df_tmp.columns:
           if df_tmp["Delta P - P2"].max() - df_tmp["Delta P - P2"].min() > df_tmp["Delta P - P1"].max() - df_tmp["Delta P - P1"].min():
-             df_tmp["DeltaP"] = df_tmp["Delta P - P2"]
+             df_tmp["DeltaP"] = df_tmp["Delta P - P2"] #2
+             print("selected P2")
           elif df_tmp["Delta P - P1"].max() - df_tmp["Delta P - P1"].min() > df_tmp["Delta P - P2"].max() - df_tmp["Delta P - P2"].min():
-             df_tmp["DeltaP"] = df_tmp["Delta P - P1"]
+             df_tmp["DeltaP"] = df_tmp["Delta P - P1"] #1
+             print("selected P1")
+
        df_tmp['DVpump_Dt'] = df_tmp['Vpump'].diff() / df_tmp['Time'].diff().dt.total_seconds()
        df_tmp['DIpump_Dt'] = df_tmp['Ipump'].diff() / df_tmp['Time'].diff().dt.total_seconds()
        df_tmp['DQ_Dt'] = df_tmp['Q'].diff() / df_tmp['Time'].diff().dt.total_seconds()
