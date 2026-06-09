@@ -56,11 +56,11 @@ def select_filter_for_file(current_text):
 
 def select_and_start_conversion(selected_text, input_file_list, use_same_input_file_name, output_file_name):
 
-    if selected_text == "EDAG":
+    if selected_text == "EDAG(.txt)":
         CSV_to_MDF_Handler.exec_substitution(input_file_list=input_file_list,
                                              use_same_input_file_name=use_same_input_file_name,
                                              output_file_name=output_file_name)
-    if selected_text == "EDAG(.tdms)":
+    elif selected_text == "EDAG(.tdms)":
         EDAG_TDMS_to_MDF.exec_conversion(input_file_list=input_file_list,
                                          use_same_input_file_name=use_same_input_file_name,
                                          output_file_name=output_file_name)

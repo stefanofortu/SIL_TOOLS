@@ -240,9 +240,9 @@ class CSV_to_MDF_Handler:
     # START CONFIGURATION
     # -------------------
     @staticmethod
-    def exec_substitution(input_file_path, input_file_path_list, use_same_input_file_name, output_file_name):
+    def exec_substitution(input_file_list, use_same_input_file_name, output_file_name):
         input_file_path = None
-        for input_file in input_file_path_list:
+        for input_file in input_file_list:
             path = "C:\\Users\\stefano.fortunati\\Documents\\_LAVORO\\Schaeffler\\PXL_EDAG\\"
 
             # FILENAME SENZA ESTENSIONE !!!
@@ -257,6 +257,9 @@ class CSV_to_MDF_Handler:
 
             # Inserimento di una colonna "time" con valori in 'datetime'
             df.insert(1, 'time', pd.to_datetime(df[df.columns[0]],format="%d.%m.%Y %H:%M:%S,%f"))
+            #df.insert(1, 'time', pd.to_datetime(df[df.columns[0]],format='ISO8601'))
+            #df.insert(1, 'time', pd.to_datetime(df[df.columns[0]],format="%d.%m.%Y %H:%M:%S"))
+
             start_time = df['time'].iloc[0]
 
             # Inserimento di una colonna "relative_time" con valori in 'datetime'
