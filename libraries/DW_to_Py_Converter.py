@@ -20,7 +20,7 @@ class Dewesoft_Converter(DWDataReader):
         self.DW_channels_number = None
 
     def check_file_vs_measurement_info(self):
-        #print("Checking measurement info: ")
+        # print("Checking measurement info: ")
 
         measurement_info = DWMeasurementInfo(0, 0, 0, 0)
         check_error(self.lib, self.lib.DWIGetMeasurementInfo(self.reader_instance, ctypes.byref(measurement_info)))
@@ -47,16 +47,22 @@ class Dewesoft_Converter(DWDataReader):
         self.DW_duration_s = self.file_info.duration
         # print(f"Duration: {self.DW_duration_s}")
 
-        if not (self.DW_duration_s * 1000 / self.DW_sample_rate_ms).is_integer():
-            print("Error in DW_number_of_sample creation")
+        dw_number_of_sample_temp = (self.DW_duration_s * 1000 / self.DW_sample_rate_ms)
+
+        if (abs(dw_number_of_sample_temp - round(dw_number_of_sample_temp))) <= 0.001:
+            self.DW_number_of_sample = round(dw_number_of_sample_temp)
         else:
-            self.DW_number_of_sample = int(self.DW_duration_s * 1000 / self.DW_sample_rate_ms)
+            print(f"self.DW_duration_s :, {self.DW_duration_s}")
+            print(f"self.DW_duration_s * 1000 :, {self.DW_duration_s * 1000}")
+            print(f"self.DW_duration_s * 1000 / self.DW_sample_rate_ms: {self.DW_duration_s * 1000 / self.DW_sample_rate_ms}")
+            print(f"dw_number_of_sample_temp : {dw_number_of_sample_temp}")
+            print("Error in DW_number_of_sample creation")
 
         ch_count = ctypes.c_int()
         check_error(self.lib, self.lib.DWIGetChannelListCount(self.reader_instance, ctypes.byref(ch_count)))
         self.DW_channels_number = ch_count.value
         # print("Channel count:", DW_channels_number)
-        print(f"DW File info:{self.DW_channels_number} channels stored at {int(1000/(self.DW_sample_rate_ms))} Hz "
+        print(f"DW File info:{self.DW_channels_number} channels stored at {int(1000 / (self.DW_sample_rate_ms))} Hz "
               f"for {self.file_info.duration} s ({self.DW_number_of_sample} each channel)."
               f"Start measurement at {self.DW_start_time}")
 
@@ -123,8 +129,9 @@ class Dewesoft_Converter(DWDataReader):
                         self.lib.DWIGetScaledSamplesCount(self.reader_instance, ch.index, ctypes.byref(sample_cnt)))
             down_sampling = False
             down_sampling_constant = 1
-            if sample_cnt.value != self.DW_duration_s * 1000 / self.DW_sample_rate_ms:
-                print(f"Problem in sample count: Sample count in {ch_name}: {sample_cnt.value}, from file info {self.DW_number_of_sample}")
+            if sample_cnt.value != self.DW_number_of_sample:
+                print(
+                    f"Problem in sample count: Sample count in {ch_name}: {sample_cnt.value}, from file info {self.DW_number_of_sample}")
                 if sample_cnt.value > self.DW_number_of_sample:
                     if (sample_cnt.value / self.DW_number_of_sample).is_integer():
                         down_sampling = True
@@ -163,7 +170,7 @@ class Dewesoft_Converter(DWDataReader):
 
             if verbose:
                 for i in range(0, sample_cnt.value, 200):
-                    #print(f"  Value: {i} : {samples[i]:.2f}")
+                    # print(f"  Value: {i} : {samples[i]:.2f}")
                     pass
 
             # samples è un puntatore a un array di 4887 double
@@ -194,6 +201,7 @@ class Dewesoft_Converter(DWDataReader):
         # print("datetime_local_time:", datetime_local_time.strftime("%Y-%m-%d %H:%M:%S %Z%z"))
 
         return datetime_local_time
+
 
 if __name__ == "__main__":
     filename = "C:\\Users\\stefano.fortunati\\Desktop\\test_dewesoft.dxd"
