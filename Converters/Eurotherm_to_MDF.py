@@ -11,10 +11,11 @@ class Eurotherm_to_MDF:
 
 
     @staticmethod
-    def fix_df_dtype(df):
+    def fix_df_dtype(df, verbose=True):
         for col_name in df.columns:
             unique_types = df[col_name].map(type).unique()
-            print(f"Column {col_name} has types: {unique_types}")
+            if verbose:
+                print(f"Column {col_name} has types: {unique_types}")
             if col_name != 'Time_rel[s]' and col_name != 'Time':
                 if len(unique_types) == 1:
                     if df[col_name].dtypes == 'str':
@@ -68,7 +69,7 @@ class Eurotherm_to_MDF:
                     # Check if the line starts with "n°Campione"
                     #print(line.lower())
                     if line.startswith('"Nome Gruppo"'):
-                        key, value = [part.strip('"') for part in line.split(';')]
+                        key, value = [part.strip('"') for part in line.split('\t')]
                         parsed = {key: value}
                         #print(parsed)
                         nome_gruppo = parsed["Nome Gruppo"].replace(';', '').replace('"', '').replace(' ', '_').strip()
@@ -77,7 +78,7 @@ class Eurotherm_to_MDF:
                     if line.lower().startswith('"date/ora"'):
                         header_line_number = line_number
                         print(f"First line that starts with 'Date/Ora' found at row {header_line_number}:")
-                        print(line.strip())  # Print the line without extra spaces or newlines
+                        #print(line.strip())  # Print the line without extra spaces or newlines
                         break  # Stop after finding the first match
             headers = []
             units = []
@@ -86,18 +87,18 @@ class Eurotherm_to_MDF:
                 for line_number, line in enumerate(file, start=1):
                     if line_number == header_line_number:
                         headers = parts = [p.strip().strip('"') for p in line.split('\t') if p.strip() != ""]
-                        print(headers)
+                        #print(headers)
                     if line_number == header_line_number+1:
                         #print(line.strip())
                         units = parts = [p.strip().strip('"') for p in line.split('\t') if p.strip() != ""]
-                        print(units)
+                        #print(units)
                         break
 
             merged_headers = [
                 f"{h} [{u}]" if u else h
                 for h, u in zip(headers, units + [""] * (len(headers) - len(units)))
             ]
-            print(merged_headers)
+            #print(merged_headers)
 
             merged_headers = [
                 f"{h} ({u})" if u else h
@@ -107,11 +108,27 @@ class Eurotherm_to_MDF:
             # Create a list to ignore all the header rows and the unit row
             ignore_list = list(range(0, header_line_number-1))
             ignore_list.append(header_line_number)
-            print(f"ignore_list {ignore_list}")
+            #print(f"ignore_list {ignore_list}")
 
+            with open(input_file_path, 'r') as file:
+                for line_number, line in enumerate(file, start=1):
+                    # conta i TAB
+                    num_tab = line.count("\t")
+
+                    # esempio: vogliamo almeno 6 TAB (=> 7 colonne)
+
+                    if num_tab <= 1:
+                        parts = line.strip().split("\t")
+                        if len(parts[1]) >= 10:
+                            ignore_list.append(line_number - 1)
+
+            #print(f"ignore_list {ignore_list}")
+
+            ignore_list_unique = list(dict.fromkeys(ignore_list))
+            print(f"ignore_list_unique {ignore_list_unique}")
 
             #### READ CSV FILE
-            df = pd.read_csv(input_file_path, sep=";",
+            df = pd.read_csv(input_file_path, sep="\t",
                              skiprows=ignore_list,
                              decimal=",",
                              # nrows=10,
@@ -119,7 +136,7 @@ class Eurotherm_to_MDF:
 
             df.columns = df.columns.str.strip()
 
-            print(df.head(10))
+            #print(df.head(10))
 
             #### DROP UNECESSARY COLUMNS
             columns_to_delete = []
@@ -133,12 +150,15 @@ class Eurotherm_to_MDF:
             #print(df.head(10))
 
             df = df.rename(columns={"Date/Ora": "Data_Ora"})
-            print(df.head(10))
+            #print(df)
 
             # Inserimento di una colonna "time" con valori in 'datetime'
             #df.insert(1, 'time', pd.to_datetime(df[df.columns["Data_Ora"]],format="%d.%m.%Y %H:%M:%S,%f"))
 
-            df.insert(1, "Time",  pd.to_datetime(df["Data_Ora"], dayfirst=True) )#format="%d/%m/%y %H:%M:%S.%f"))
+            #df.insert(1, "Time",  pd.to_datetime(df["Data_Ora"], dayfirst=True) )#format="%d/%m/%y %H:%M:%S.%f"))
+            df.to_csv("hello.csv")
+
+            df.insert(1, "Time",  pd.to_datetime(df["Data_Ora"],format='%d/%m/%y %H:%M:%S'))
 
             start_time = df['Time'].iloc[0]
             # print(df.head(10))
@@ -155,16 +175,16 @@ class Eurotherm_to_MDF:
             df = df.dropna()
             # print("shape after NAN dropping:", df.shape)
 
-            df = Eurotherm_to_MDF.fix_df_dtype(df)
+            df = Eurotherm_to_MDF.fix_df_dtype(df, verbose=False)
 
             dataframe_list.append(df)
 
-        print(len(dataframe_list))
-        print(dataframe_list[0].head(5))
+        #print(len(dataframe_list))
+        #print(dataframe_list[0].head(5))
 
         # Concatenate all DataFrames in the list
         df_concat = pd.concat(dataframe_list, ignore_index=True)
-        print(df_concat.head(5))
+        #print(df_concat.head(5))
 
         df_concat = df_concat.sort_values(by="Time").reset_index(drop=True)
         start_time = df_concat['Time'].iloc[0]
