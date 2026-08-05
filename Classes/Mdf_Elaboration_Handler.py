@@ -1,6 +1,7 @@
 from asammdf import MDF
 from Classes.Dataframe_to_MDF import Dataframe_to_MDF
 from pandas import Timestamp, to_datetime
+import numpy as np
 
 
 class Mdf_Elaboration_Handler:
@@ -11,9 +12,17 @@ class Mdf_Elaboration_Handler:
     def load_from_mdf(input_file_path):
         mdf_obj = MDF(input_file_path)
         df = mdf_obj.to_dataframe()
-        df = df.reset_index()
-        df = df.rename(columns={'timestamps': 'Time[s]'})
+        print(mdf_obj.start_time)
         start_time = Timestamp(mdf_obj.start_time)
+        print(start_time)
+        #print(df.head(10))
+        print(df.columns)
+
+        print(df["Time[s]"])
+        df[["Time[s]"]].to_csv("Time[s].csv", index=False)
+        df = df.reset_index()
+        #df = df.rename(columns={'timestamps': 'Time[s]'})
+
         return df, start_time
 
     @staticmethod
@@ -49,6 +58,28 @@ class Mdf_Elaboration_Handler:
         return df
 
     @staticmethod
-    def save_to_mdf(df, output_file_path):
+    def modify_columns(source_column, percentage_max=0.02, offset=1.0):
+        random_values = np.random.uniform(-percentage_max, percentage_max, len(source_column))
+
+        modified_column = source_column * (1 + random_values) + offset
+        return modified_column
+
+    @staticmethod
+    def M04_transormation(df):
+        df.rename(columns={"P01_I1[bar]": "P01_I1[A]"}, inplace=True)
+        df.rename(columns={"P02_I2[bar]": "P02_I2[A]"}, inplace=True)
+
+        df["P01_I1[A]"] = Mdf_Elaboration_Handler.modify_columns(df["P02_I2[A]"], percentage_max=0.05, offset=0)
+        df["P01_U1[V]"] = Mdf_Elaboration_Handler.modify_columns(df["P02_U2[V]"], percentage_max=0, offset=0.2)
+        df["P01_dp1[mbar]"] = Mdf_Elaboration_Handler.modify_columns(df["P02_dp2[mbar]"], percentage_max=0.05, offset=0.05)
+        df["P03_I3[A]"] = Mdf_Elaboration_Handler.modify_columns(df["P04_I4[A]"], percentage_max=0.05, offset=0)
+        df["P03_U3[V]"] = Mdf_Elaboration_Handler.modify_columns(df["P04_U4[V]"], percentage_max=0, offset=0.2)
+        df["P03_dp3[mbar]"] = Mdf_Elaboration_Handler.modify_columns(df["P04_dp4[mbar]"], percentage_max=0.05, offset=0.05)
+        #df.drop(columns=["P01_I1[bar]"], inplace=True)
+        #df.rename(columns={"P02_I2[bar]": "P02_I2[A]"}, inplace=True)
+
+    @staticmethod
+    def save_to_mdf(df, output_file_path, start_time=None):
         # print("df.columns post rename", df.columns)
-        Dataframe_to_MDF.save_to_mdf(dataframe_list=[df], output_file_name=output_file_path)
+        Dataframe_to_MDF.save_to_mdf(dataframe=df, output_file_name=output_file_path,
+                                     time_column_type="relative", start_time=start_time)
