@@ -25,7 +25,8 @@ class MDF_Elaboration_Widget(QWidget):
                                                           signal_name=self.read_by_threshold_signal_name.text(),
                                                           threshold=self.read_by_threshold_value_label_spin_box.value())
 
-        self.mdf_elaboration.save_to_mdf(df, self.cfg_data.mdf_elaboration_output_file_path)
+        #self.mdf_elaboration.M04_transormation(df=df)
+        self.mdf_elaboration.save_to_mdf(df, self.cfg_data.mdf_elaboration_output_file_path, start_time=start_time)
 
     def openInputFileDialog(self):
         file_dialog = QFileDialog()
@@ -34,7 +35,7 @@ class MDF_Elaboration_Widget(QWidget):
         selected_filter = possible_filters[0]  # .m4f
 
         filename, _ = file_dialog.getOpenFileName(self, caption="Select input MDF file",
-                                                  dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_path),
+                                                  dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_list[0]),
                                                   filter=";;".join(possible_filters),
                                                   selectedFilter=selected_filter)
 

@@ -13,8 +13,8 @@ import pandas as pd
 class CSV_connector_test_Handler:
     @staticmethod
     def exec_conversion(input_file_list, use_same_input_file_name, output_file_name):
-        test_ongoing = "45_pin_expression_force"
-        application = "WUP50"
+        test_ongoing = "44_Pull_off"
+        application = "WUP150"
 
         # carica il file
         df_list = []
@@ -28,18 +28,109 @@ class CSV_connector_test_Handler:
             df = df.iloc[:, :-2]
             df.columns = ["Forza[N]", "Distanza[mm]", "Tempo[min]"]
             df["Tempo[sec]"] = (df["Tempo[min]"] * 60).round(2)
-            if application == "WUP50" and test_ongoing == "45_pin_expression_force":
+            if application == "WUP150" and test_ongoing == "43_Plug_lock_holding":
+                df_list.append((df, file[-7:-4]))
+            elif application == "WUP150" and test_ongoing == "44_Pull_off":
+                df_list.append((df, file[-7:-4]))
+            elif application == "WUP50" and test_ongoing == "45_pin_expression_force":
                 df_list.append((df, file[-9:-6]+"_pin"+file[-5:-4]))
             else:
                 df_list.append((df, file[-7:-4]))
 
             # print(df.head(2))
             # print(name)
+        if application == "WUP150" and test_ongoing == "43_Plug_lock_holding":
+
+            x = np.linspace(0, 10, 100)
+
+            fig, ax1 = plt.subplots()
+            ax12 = ax1.twinx()  # asse a destra
+            for df, name in df_list:
+                if name == "A71":
+                    df["Forza[N]"] = df["Forza[N]"] * 120 / 100
+
+            for df, name in df_list:
+                ax1.plot(df["Tempo[sec]"], df["Forza[N]"], label=f"{name}-Force")
+                ax12.plot(df["Tempo[sec]"], df["Distanza[mm]"], linestyle="--", label=f"{name}-Distance")
+
+            # etichette assi
+            ax1.set_xlabel("Time [sec]")
+            ax1.set_ylabel("Force [N]")
+            ax12.set_ylabel("Distance [mm]")
+
+            # griglia (solo su asse principale)
+            ax1.grid()
+
+            # legenda combinata (importantissimo!)
+            lines_1, labels_1 = ax1.get_legend_handles_labels()
+            lines_2, labels_2 = ax12.get_legend_handles_labels()
+
+            ax1.legend(lines_1 + lines_2, labels_1 + labels_2)
+
+            plt.show()
+
+            fig2, ax2 = plt.subplots()
+            for df, name in df_list:
+                val = df.loc[df['Forza[N]'].idxmax(), 'Tempo[sec]']
+
+                df_force_pos = df[df["Tempo[sec]"] < val + 80]  # df[df["Forza[N]"] > 20]
+
+                ax2.plot(df_force_pos["Distanza[mm]"], df_force_pos["Forza[N]"], label=name)
+                ax2.set_xlabel("Distance[mm]")
+                ax2.set_ylabel("Force[N]")
+                ax2.grid(True)
+                ax2.legend()
+
+            plt.show()
 
 
+        elif application == "WUP150" and test_ongoing == "44_Pull_off":
 
+            x = np.linspace(0, 10, 100)
+            '''
+            fig, ax1 = plt.subplots()
+            ax12 = ax1.twinx()  # asse a destra
 
-        if application == "WUP50" and test_ongoing == "45_pin_expression_force":
+            
+            for df, name in df_list:
+                ax1.plot(df["Tempo[sec]"], df["Forza[N]"], label=f"{name}-Force")
+                ax12.plot(df["Tempo[sec]"], df["Distanza[mm]"], linestyle="--", label=f"{name}-Distance")
+
+            # etichette assi
+            ax1.set_xlabel("Time [sec]")
+            ax1.set_ylabel("Force [N]")
+            ax12.set_ylabel("Distance [mm]")
+
+            # griglia (solo su asse principale)
+            ax1.grid()
+
+            # legenda combinata (importantissimo!)
+            lines_1, labels_1 = ax1.get_legend_handles_labels()
+            lines_2, labels_2 = ax12.get_legend_handles_labels()
+
+            ax1.legend(lines_1 + lines_2, labels_1 + labels_2)
+
+            plt.show()
+            '''
+            fig2, ax2 = plt.subplots()
+            for df, name in df_list:
+                # df_force_pos = df[df["Forza[N]"] > 0]
+                # df_force_pos = df[df["Distanza[mm]"] > -2]
+                val = df.loc[df['Forza[N]'].idxmax(), 'Tempo[sec]']
+
+                df_reduced = df[df["Distanza[mm]"] < 7]
+
+                ax2.plot(df_reduced["Distanza[mm]"], df_reduced["Forza[N]"], label=name)
+                ax2.set_xlabel("Distance[mm]")
+                ax2.set_ylabel("Force[N]")
+                ax2.set_ylim(0, 80)
+                ax2.axhline(y=75, color='red', linestyle='--', linewidth=1.5)
+                ax2.grid(True)
+                ax2.legend()
+
+            plt.show()
+
+        elif application == "WUP50" and test_ongoing == "45_pin_expression_force":
 
             for df, name in df_list:
                 if name == "g19_pin3":

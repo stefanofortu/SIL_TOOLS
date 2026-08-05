@@ -13,28 +13,29 @@ class Dataframe_to_MDF:
         df = mdf_obj.to_dataframe()
         df = df.reset_index()
         df = df.rename(columns={'timestamps': 'Time[s]'})
+
         start_time = Timestamp(mdf_obj.start_time)
         return df, start_time
 
     @staticmethod
-    def save_to_mdf(dataframe, output_file_name, time_column_type="relative"):
+    def save_to_mdf(dataframe, output_file_name, time_column_type="relative", start_time=None):
         print("dataframe_list must be a list of dataframes:"
               " [dataframe1, dataframe2, dataframe3]")
         print("time_column_type=relative OBSOLETE")
 
         if time_column_type == "relative":
             print("time_column_type == relative to be reviewed")
-            exit()
+            #exit()
 
         print("OBSOLETE each dataframe should have the first column \"Time[s]\" "
               "with relative date or absolute time according to the parameter time_column_type. MISSING CHECKS")
         if time_column_type == "relative":
-            for df in dataframe_list:
+            for df in [dataframe]:
                 signal_name_list = [x for x in df.columns if x != "Time[s]"]
 
                 #############  creare asse dei tempi #############
                 timestamps = np_array(df["Time[s]"])
-
+                #print(timestamps)
                 ############# ## STEP2 : creare i segnali effettivi dal dataframe #############
                 signals_list = []
                 for col_name in signal_name_list:
@@ -47,27 +48,29 @@ class Dataframe_to_MDF:
                     # append the signals to the new file
                     mdf4.append(signals_list, comment='imported')
                     if time_column_type == "absolute":
-                        start_time = 0
+                        start_time = start_time
                         mdf4.start_time = start_time.to_pydatetime()  # datetime.fromisoformat("2024-08-06 17:00:00")
+                    else:
+                        mdf4.start_time = start_time
                     # save new file
                     mdf4.save(output_file_name, overwrite=True)
 
         if time_column_type == "absolute":
             df = dataframe
-            signal_name_list = [x for x in df.columns if x != "Time"]
+            signal_name_list = [x for x in df.columns if x != "Time[s]"]
             print(f"signal_name_list {signal_name_list}")
-            print("OBSOLETE each dataframe should have the first column \"Time\" "
+            print("OBSOLETE each dataframe should have the first column \"Time[s]\" "
                   "with absolute time in pydatetime format. MISSING CHECKS")
             print(df.head(5))
             #############  creare asse dei tempi #############
-            start_time = df['Time'].iloc[0]
+            start_time = df['Time[s]'].iloc[0]
             print(start_time)
             print(type(start_time))
             # Inserimento di una colonna "Time_rel" con valori in 'datetime'
-            df.insert(2, 'Time_rel[s]', df['Time'] - start_time)
+            df.insert(2, 'Time_rel[s]', df['Time[s]'] - start_time)
             # Creazione dei timestamp
             timestamps = np_array(df["Time_rel[s]"].dt.total_seconds())
-            print(timestamps)
+            #print(timestamps)
 
 
             ############# ## STEP2 : creare i segnali effettivi dal dataframe #############
