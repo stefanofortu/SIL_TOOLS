@@ -150,7 +150,7 @@ void setup()
   {
     PWM_duty_cycles[i]=10;
   }
-  configure_duty_cycles_timer_PWM(false);
+  configure_duty_cycles_timer_PWM(true);
 
   // imposta la velocità a 9600 bps
   Serial.begin(9600);
@@ -227,10 +227,11 @@ void loop()
       for (int i = 0; i < IN_ENABLE_number; i++)
       {
         //PWM_duty_cycles[i]=10*current_index_PWM;
-        do_parameter_sequence_short(i);
+        //do_parameter_sequence_short(i);
+        activates_working_point(i);
         //exec_test_sequence(i, "operation_max");
       } 
-      configure_duty_cycles_timer_PWM(true);
+      configure_duty_cycles_timer_PWM(false);
       
     
       //exec_M03_sequence();
@@ -333,6 +334,44 @@ void exec_test_sequence(int pump_index, String test_type)
   }
   Serial.println("exec_test_sequence() - test_type selection error");
 }
+
+void activates_working_point(int pump_index)
+{
+  int enable_state = digitalRead(IN_pins[pump_index]);
+  unsigned long currentTime = millis();
+  unsigned long start_time = enable_start_time[pump_index];
+
+  // ---- Detect button press (rising edge) ----
+  //Serial.println(PWM_duty_cycles[pump_index]);
+  if (enable_state == LOW)
+  {
+    //parameter_counter[pump_index] +=1;
+    if (PWM_duty_cycles[pump_index] != 95) 
+    {
+      Serial.print("Set PWM out num ");
+      Serial.print(pump_index);
+      Serial.println(" to 95%");
+      PWM_duty_cycles[pump_index]=95;
+    }
+  }else{
+    //parameter_counter[pump_index] = 0;
+    if (PWM_duty_cycles[pump_index] != 10) 
+    {
+      Serial.print("Set PWM out num ");
+      Serial.print(pump_index);
+      Serial.println(" to 10%");
+      PWM_duty_cycles[pump_index]=10;
+    }
+  }
+  parameter_counter[pump_index] = 0;
+
+// ---- Set PWM according to time elapsed ----
+  //if (  (PARAMETER_SHORT_TEST_STEP_DURATION*0 == parameter_counter[pump_index])) { PWM_duty_cycles[pump_index]=10; }      
+  //if (  (PARAMETER_SHORT_TEST_STEP_DURATION*3 < parameter_counter[pump_index])                                                                        ) { PWM_duty_cycles[pump_index]=10; }      
+
+}
+
+
 
 int pwm_from_percentage(int percent) 
 {
