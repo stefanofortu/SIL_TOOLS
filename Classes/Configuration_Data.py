@@ -79,12 +79,9 @@ class Configuration_Data:  # CHANGE NAME TO FILE
 
                         ############# TAB MDF ELABORATION ####################
                         #
-                        # mdf_elaboration_input_file = cfg_data_dict['mdf_elaboration_insert_read_by_value_delay']
-                        # self.mdf_elaboration_input_file_path = mdf_elaboration_input_file['path']
-                        #
-                        # mdf_elaboration_output_file = cfg_data_dict['mdf_elaboration_output_file']
-                        # self.mdf_elaboration_output_file_path = mdf_elaboration_output_file['path']
-                        #
+                        self.mdf_elaboration_input_file_path = cfg_data_dict['mdf_elaboration_input_file']
+                        self.mdf_elaboration_output_file_path = cfg_data_dict['mdf_elaboration_output_file']
+
                         # "mdf_elaboration_insert_read_by_value_delay": {
                         #     "path": self.mdf_elaboration_insert_read_by_value_delay,
                         # },
@@ -108,11 +105,7 @@ class Configuration_Data:  # CHANGE NAME TO FILE
                         #
                         #
                         #
-                        # mdf_elaboration_input_file = cfg_data_dict['mdf_elaboration_input_file']
-                        # self.mdf_elaboration_input_file_path = mdf_elaboration_input_file['path']
                         #
-                        # mdf_elaboration_output_file = cfg_data_dict['mdf_elaboration_output_file']
-                        # self.mdf_elaboration_output_file_path = mdf_elaboration_output_file['path']
 
                         ############# CSV CONVERTION ####################
                         self.csv_conversion_input_file_combobox = cfg_data_dict['csv_conversion_input_file_combobox']
@@ -152,8 +145,8 @@ class Configuration_Data:  # CHANGE NAME TO FILE
             ############# TAB MDF ELABORATION ####################
             "mdf_conversion_input_file_list":  self.mdf_conversion_input_file_list,
             #"mdf_conversion_input_file_list": self.mdf_conversion_input_file_list,
-            ############# TAB MDF ELABORATIO ####################
-
+            ############# TAB MDF ELABORATION ####################
+            "mdf_elaboration_input_file": self.mdf_elaboration_input_file_path,
             "mdf_elaboration_insert_read_by_value_delay": self.mdf_elaboration_insert_read_by_value_delay,
             "mdf_elaboration_insert_read_by_value_waiting": self.mdf_elaboration_insert_read_by_value_waiting,
             "mdf_elaboration_insert_read_by_value_time": self.mdf_elaboration_insert_read_by_value_time,

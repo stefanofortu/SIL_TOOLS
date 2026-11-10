@@ -204,7 +204,7 @@ class Dewesoft_Converter(DWDataReader):
 
 
 if __name__ == "__main__":
-    filename = "C:\\Users\\stefano.fortunati\\Desktop\\test_dewesoft.dxd"
+    filename = r"Z:\2026\2026_01_01_0259\logger\Performances_Ceer_PM11_13V_-20C_180lin.dxd"
     print("Loading file:", filename)
 
     dewesoft_converter = Dewesoft_Converter()

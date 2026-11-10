@@ -25,7 +25,7 @@ class MDF_Elaboration_Widget(QWidget):
                                                           signal_name=self.read_by_threshold_signal_name.text(),
                                                           threshold=self.read_by_threshold_value_label_spin_box.value())
 
-        #self.mdf_elaboration.M04_transormation(df=df)
+        self.mdf_elaboration.M04_transormation(df=df)
         self.mdf_elaboration.save_to_mdf(df, self.cfg_data.mdf_elaboration_output_file_path, start_time=start_time)
 
     def openInputFileDialog(self):
@@ -35,7 +35,7 @@ class MDF_Elaboration_Widget(QWidget):
         selected_filter = possible_filters[0]  # .m4f
 
         filename, _ = file_dialog.getOpenFileName(self, caption="Select input MDF file",
-                                                  dir=os.path.dirname(self.cfg_data.mdf_conversion_input_file_list[0]),
+                                                  dir=os.path.dirname(self.cfg_data.mdf_elaboration_input_file_path),
                                                   filter=";;".join(possible_filters),
                                                   selectedFilter=selected_filter)
 
@@ -45,8 +45,10 @@ class MDF_Elaboration_Widget(QWidget):
             self.cfg_data.save_cfg_data_to_file()
 
     def saveFileDialog(self):
-        fileName, _ = QFileDialog.getSaveFileName(self, "Select output file", "",
-                                                  "MDF file (*.mf4)")  # , options=options)
+        fileName, _ = QFileDialog.getSaveFileName(self,
+                                                  caption="Select output file",
+                                                  dir=os.path.dirname(self.cfg_data.mdf_elaboration_output_file_path),
+                                                  filter="MDF file (*.mf4)")  # , options=options)
         if fileName:
             print(fileName)
             self.cfg_data.mdf_elaboration_output_file_path = fileName
@@ -216,7 +218,6 @@ class MDF_Elaboration_Widget(QWidget):
         ############### LOAD DATA ######################
         self.cfg_data = cfg_data
         self.cfg_data.load_cfg_data_from_file()
-
         self.input_file_path_label.setText(self.cfg_data.mdf_elaboration_input_file_path)
         self.output_file_path_label.setText(self.cfg_data.mdf_elaboration_output_file_path)
 

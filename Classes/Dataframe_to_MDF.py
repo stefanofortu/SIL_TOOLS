@@ -12,8 +12,6 @@ class Dataframe_to_MDF:
         mdf_obj = MDF(input_file_path)
         df = mdf_obj.to_dataframe()
         df = df.reset_index()
-        df = df.rename(columns={'timestamps': 'Time[s]'})
-
         start_time = Timestamp(mdf_obj.start_time)
         return df, start_time
 

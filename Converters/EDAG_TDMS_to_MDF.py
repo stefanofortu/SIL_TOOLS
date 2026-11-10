@@ -76,7 +76,7 @@ class EDAG_TDMS_to_MDF:
                         TDMS_real_number_of_sample = df_channel.shape[0]
                         first_samples_extracted = False
                     else:
-                        if TDMS_real_number_of_sample != df_channel.shape[0] # and df_channel.shape[0] != 6917:
+                        if TDMS_real_number_of_sample != df_channel.shape[0]: # and df_channel.shape[0] != 6917:
                             print(
                                 f" WARNING : Channel {channel.name} has different REAL sample number wrt other channels")
                             print(
