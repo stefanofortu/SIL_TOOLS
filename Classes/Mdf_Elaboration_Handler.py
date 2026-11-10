@@ -16,10 +16,8 @@ class Mdf_Elaboration_Handler:
         start_time = Timestamp(mdf_obj.start_time)
         print(start_time)
         #print(df.head(10))
-        print(df.columns)
-
-        print(df["Time[s]"])
-        df[["Time[s]"]].to_csv("Time[s].csv", index=False)
+        df = df.rename(columns={'timestamps': 'Time[s]'})
+        #print(df.columns)
         df = df.reset_index()
         #df = df.rename(columns={'timestamps': 'Time[s]'})
 
@@ -66,17 +64,30 @@ class Mdf_Elaboration_Handler:
 
     @staticmethod
     def M04_transormation(df):
-        df.rename(columns={"P01_I1[bar]": "P01_I1[A]"}, inplace=True)
-        df.rename(columns={"P02_I2[bar]": "P02_I2[A]"}, inplace=True)
+        df.drop(columns=["all_nb[°C]"], inplace=True)
+        df.drop(columns=["all_Notaus[ohne]"], inplace=True)
+        df.drop(columns=["all_Level[ohne]"], inplace=True)
+        df.drop(columns=["all_DI3[ohne]"], inplace=True)
+        df.drop(columns=["all_LaudaFeh[ohne]"], inplace=True)
+        df.drop(columns=["all_DatenOut1[ohne]"], inplace=True)
+        df.drop(columns=["all_DatenOut2[ohne]"], inplace=True)
+        df.drop(columns=["all_DatenOut3[ohne]"], inplace=True)
+        df.drop(columns=["__samples_origin"], inplace=True)
 
-        df["P01_I1[A]"] = Mdf_Elaboration_Handler.modify_columns(df["P02_I2[A]"], percentage_max=0.05, offset=0)
-        df["P01_U1[V]"] = Mdf_Elaboration_Handler.modify_columns(df["P02_U2[V]"], percentage_max=0, offset=0.2)
-        df["P01_dp1[mbar]"] = Mdf_Elaboration_Handler.modify_columns(df["P02_dp2[mbar]"], percentage_max=0.05, offset=0.05)
-        df["P03_I3[A]"] = Mdf_Elaboration_Handler.modify_columns(df["P04_I4[A]"], percentage_max=0.05, offset=0)
-        df["P03_U3[V]"] = Mdf_Elaboration_Handler.modify_columns(df["P04_U4[V]"], percentage_max=0, offset=0.2)
-        df["P03_dp3[mbar]"] = Mdf_Elaboration_Handler.modify_columns(df["P04_dp4[mbar]"], percentage_max=0.05, offset=0.05)
-        #df.drop(columns=["P01_I1[bar]"], inplace=True)
-        #df.rename(columns={"P02_I2[bar]": "P02_I2[A]"}, inplace=True)
+        # individua i reset
+        reset = df['relative_seconds'].diff() < 0
+        # numero progressivo di blocco
+        gruppo = reset.cumsum()
+
+        # offset da aggiungere a ciascun blocco
+        offset = df.groupby(gruppo)['relative_seconds'].transform('first').where(gruppo == 0, 0)
+
+        for g in range(1, gruppo.max() + 1):
+            precedente = df.loc[gruppo == g - 1, 'relative_seconds'].max() + 1
+            offset.loc[gruppo == g] = precedente
+
+        df['Time[s]'] = df['relative_seconds'] + offset
+        print(df.columns)
 
     @staticmethod
     def save_to_mdf(df, output_file_path, start_time=None):
